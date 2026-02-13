@@ -1,0 +1,8 @@
+// HashKey Chain Testnet (chainId 133) - Deployed 2026-02-13
+export const CONTRACTS = {
+  AGNT_TOKEN: '0x7379C9d687F8c22d41be43fE510F8225afF253f6' as const,
+  AGENT_REGISTRY: '0xb044E947E8eCf2d954E9C1e26970bEe128e9EB49' as const,
+  TASK_MARKETPLACE: '0x7907ec09f1d1854Fd4dA26E1a9e357Fd0d797061' as const,
+} as const;
+
+export const CHAIN_ID = 133;

@@ -4,46 +4,17 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TaskCard } from '@/components/TaskCard';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
-
-// Mock tasks for development
-const mockTasks = [
-  {
-    id: '0xaaa1' as `0x${string}`,
-    title: 'Review Pull Request #42',
-    requester: '0x111...222' as `0x${string}`,
-    requiredCapabilities: ['code-review', 'debugging'],
-    reward: BigInt('50000000000000000000'),
-    status: 0, // Open
-    deadline: new Date(Date.now() + 86400000 * 2),
-  },
-  {
-    id: '0xaaa2' as `0x${string}`,
-    title: 'Generate Monthly Report',
-    requester: '0x333...444' as `0x${string}`,
-    requiredCapabilities: ['data-analysis', 'visualization'],
-    reward: BigInt('100000000000000000000'),
-    status: 1, // Assigned
-    deadline: new Date(Date.now() + 86400000 * 5),
-  },
-  {
-    id: '0xaaa3' as `0x${string}`,
-    title: 'Translate Documentation',
-    requester: '0x555...666' as `0x${string}`,
-    requiredCapabilities: ['translation'],
-    reward: BigInt('30000000000000000000'),
-    status: 3, // Completed
-    deadline: new Date(Date.now() - 86400000),
-  },
-];
+import { useTasks } from '@/hooks/useTasks';
 
 const statusFilters = ['All', 'Open', 'In Progress', 'Completed'];
 
 export default function TasksPage() {
   const { isConnected } = useAccount();
+  const { tasks, isLoading, refetch } = useTasks();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const filteredTasks = mockTasks.filter((task) => {
+  const filteredTasks = tasks.filter((task) => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Open') return task.status === 0;
     if (activeFilter === 'In Progress') return task.status === 1 || task.status === 2;
@@ -56,7 +27,10 @@ export default function TasksPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Task Marketplace</h1>
-          <p className="text-white/60">Browse available tasks or create your own</p>
+          <p className="text-white/60">
+            Browse available tasks or create your own
+            {!isLoading && ` • ${tasks.length} tasks`}
+          </p>
         </div>
         
         {isConnected && (
@@ -83,20 +57,43 @@ export default function TasksPage() {
         ))}
       </div>
 
-      {/* Task List */}
-      <div className="space-y-4">
-        {filteredTasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </div>
-
-      {filteredTasks.length === 0 && (
+      {/* Loading State */}
+      {isLoading && (
         <div className="card text-center py-12">
-          <p className="text-white/60">No tasks found. Create one to get started!</p>
+          <div className="animate-pulse">
+            <div className="h-4 bg-white/10 rounded w-1/2 mx-auto mb-4"></div>
+            <div className="h-4 bg-white/10 rounded w-1/3 mx-auto"></div>
+          </div>
+          <p className="text-white/60 mt-4">Loading tasks from chain...</p>
         </div>
       )}
 
-      <CreateTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* Task List */}
+      {!isLoading && (
+        <div className="space-y-4">
+          {filteredTasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && filteredTasks.length === 0 && (
+        <div className="card text-center py-12">
+          <p className="text-white/60">
+            {tasks.length === 0 
+              ? 'No tasks posted yet. Create one to get started!' 
+              : 'No tasks match your filter.'}
+          </p>
+        </div>
+      )}
+
+      <CreateTaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => {
+          setIsModalOpen(false);
+          refetch();
+        }} 
+      />
     </div>
   );
 }

@@ -6,10 +6,10 @@ export function StatsSection() {
   const { stats, isLoading } = useHubStats();
 
   const statItems = [
-    { label: 'Total Agents', value: stats?.totalAgents ?? '-', icon: '🤖' },
-    { label: 'Active Tasks', value: stats?.activeTasks ?? '-', icon: '📋' },
-    { label: 'Tasks Completed', value: stats?.tasksCompleted ?? '-', icon: '✅' },
-    { label: 'Total Volume', value: stats?.totalVolume ? `${stats.totalVolume} AGNT` : '-', icon: '💰' },
+    { label: 'Registered Agents', value: stats?.totalAgents ?? '-', icon: '🤖' },
+    { label: 'Total Tasks', value: stats?.totalTasks ?? '-', icon: '📋' },
+    { label: 'AGNT Supply', value: stats?.totalSupply ?? '-', icon: '🪙' },
+    { label: 'Network', value: 'HashKey Testnet', icon: '⛓️' },
   ];
 
   return (

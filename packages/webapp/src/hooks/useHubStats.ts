@@ -1,34 +1,44 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useReadContracts } from 'wagmi';
+import { CONTRACTS } from '@/contracts';
+import { agentRegistryAbi, taskMarketplaceAbi, agntTokenAbi } from '@/contracts/abis';
+import { formatEther } from 'viem';
 
 export interface HubStats {
   totalAgents: number;
-  activeTasks: number;
-  tasksCompleted: number;
-  totalVolume: string;
+  totalTasks: number;
+  totalSupply: string;
 }
 
-// Mock stats for now - will connect to actual contracts after deployment
 export function useHubStats() {
-  const { data: stats, isLoading, error } = useQuery<HubStats>({
-    queryKey: ['hubStats'],
-    queryFn: async () => {
-      // TODO: Replace with actual SDK calls after contract deployment
-      // const client = new AgentHubClient({ network: ... });
-      // const agentCount = await client.getAgentCount();
-      // const taskCount = await client.getTaskCount();
-      
-      // Mock data for development
-      return {
-        totalAgents: 0,
-        activeTasks: 0,
-        tasksCompleted: 0,
-        totalVolume: '0',
-      };
-    },
-    staleTime: 30_000, // 30 seconds
+  const { data, isLoading, error } = useReadContracts({
+    contracts: [
+      {
+        address: CONTRACTS.AGENT_REGISTRY,
+        abi: agentRegistryAbi,
+        functionName: 'getAgentCount',
+      },
+      {
+        address: CONTRACTS.TASK_MARKETPLACE,
+        abi: taskMarketplaceAbi,
+        functionName: 'getTaskCount',
+      },
+      {
+        address: CONTRACTS.AGNT_TOKEN,
+        abi: agntTokenAbi,
+        functionName: 'totalSupply',
+      },
+    ],
   });
+
+  const stats: HubStats | undefined = data ? {
+    totalAgents: data[0]?.status === 'success' ? Number(data[0].result) : 0,
+    totalTasks: data[1]?.status === 'success' ? Number(data[1].result) : 0,
+    totalSupply: data[2]?.status === 'success' 
+      ? parseFloat(formatEther(data[2].result as bigint)).toLocaleString() 
+      : '0',
+  } : undefined;
 
   return { stats, isLoading, error };
 }

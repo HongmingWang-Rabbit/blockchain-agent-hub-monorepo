@@ -12,7 +12,7 @@ const hashkeyTestnet: Chain = {
   name: 'HashKey Chain Testnet',
   nativeCurrency: { name: 'HSK', symbol: 'HSK', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://hashkeychain-testnet.alt.technology'] },
+    default: { http: ['https://testnet.hsk.xyz'] },
   },
   blockExplorers: {
     default: { name: 'HashKey Explorer', url: 'https://hashkeychain-testnet-explorer.alt.technology' },
