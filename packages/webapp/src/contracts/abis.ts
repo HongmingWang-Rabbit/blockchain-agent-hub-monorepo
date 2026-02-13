@@ -308,3 +308,165 @@ export const BADGE_TYPE_LABELS: Record<BadgeType, string> = {
   [BadgeType.STAKER]: 'Staker',
   [BadgeType.WHALE]: 'Whale'
 };
+
+// WorkflowEngine ABI
+export const workflowEngineAbi = [
+  {
+    name: 'workflows',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'bytes32' }],
+    outputs: [
+      { name: 'workflowId', type: 'bytes32' },
+      { name: 'creator', type: 'address' },
+      { name: 'name', type: 'string' },
+      { name: 'description', type: 'string' },
+      { name: 'totalBudget', type: 'uint256' },
+      { name: 'spent', type: 'uint256' },
+      { name: 'status', type: 'uint8' },
+      { name: 'createdAt', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'workflowSteps',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: '', type: 'bytes32' },
+      { name: '', type: 'bytes32' },
+    ],
+    outputs: [
+      { name: 'stepId', type: 'bytes32' },
+      { name: 'name', type: 'string' },
+      { name: 'capability', type: 'string' },
+      { name: 'assignedAgent', type: 'bytes32' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'stepType', type: 'uint8' },
+      { name: 'status', type: 'uint8' },
+      { name: 'inputURI', type: 'string' },
+      { name: 'outputURI', type: 'string' },
+      { name: 'startedAt', type: 'uint256' },
+      { name: 'completedAt', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'getWorkflowCount',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'allWorkflowIds',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'uint256' }],
+    outputs: [{ type: 'bytes32' }],
+  },
+  {
+    name: 'getWorkflowSteps',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'workflowId', type: 'bytes32' }],
+    outputs: [{ type: 'bytes32[]' }],
+  },
+  {
+    name: 'getReadySteps',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'workflowId', type: 'bytes32' }],
+    outputs: [{ type: 'bytes32[]' }],
+  },
+  {
+    name: 'createWorkflow',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'description', type: 'string' },
+      { name: 'budget', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+    ],
+    outputs: [{ name: 'workflowId', type: 'bytes32' }],
+  },
+  {
+    name: 'addStep',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'workflowId', type: 'bytes32' },
+      { name: 'name', type: 'string' },
+      { name: 'capability', type: 'string' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'stepType', type: 'uint8' },
+      { name: 'dependencies', type: 'bytes32[]' },
+      { name: 'inputURI', type: 'string' },
+    ],
+    outputs: [{ name: 'stepId', type: 'bytes32' }],
+  },
+  {
+    name: 'startWorkflow',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'workflowId', type: 'bytes32' }],
+    outputs: [],
+  },
+  {
+    name: 'acceptStep',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'workflowId', type: 'bytes32' },
+      { name: 'stepId', type: 'bytes32' },
+      { name: 'agentId', type: 'bytes32' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'completeStep',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'workflowId', type: 'bytes32' },
+      { name: 'stepId', type: 'bytes32' },
+      { name: 'outputURI', type: 'string' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'WorkflowCreated',
+    type: 'event',
+    inputs: [
+      { name: 'workflowId', type: 'bytes32', indexed: true },
+      { name: 'creator', type: 'address', indexed: true },
+      { name: 'name', type: 'string', indexed: false },
+      { name: 'budget', type: 'uint256', indexed: false },
+    ],
+  },
+] as const;
+
+// Workflow status enum
+export const WorkflowStatus = {
+  Draft: 0,
+  Active: 1,
+  Paused: 2,
+  Completed: 3,
+  Failed: 4,
+  Cancelled: 5,
+} as const;
+
+export const StepStatus = {
+  Pending: 0,
+  Running: 1,
+  Completed: 2,
+  Failed: 3,
+  Skipped: 4,
+} as const;
+
+export const StepType = {
+  Sequential: 0,
+  Parallel: 1,
+  Conditional: 2,
+  Aggregator: 3,
+} as const;

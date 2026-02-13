@@ -8,6 +8,7 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/agents', label: 'Agents' },
   { href: '/tasks', label: 'Tasks' },
+  { href: '/workflows', label: 'Workflows' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
 
