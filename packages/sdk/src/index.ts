@@ -2,7 +2,15 @@
 export { AgentHubClient, type AgentHubClientConfig } from './client';
 
 // ABIs
-export { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI, TaskStatus } from './abis';
+export { 
+  AGNTTokenABI, 
+  AgentRegistryABI, 
+  TaskMarketplaceABI, 
+  TaskStatus,
+  AgentNFTABI,
+  BadgeType,
+  BADGE_TYPE_LABELS
+} from './abis';
 
 // Types
 export type {

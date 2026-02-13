@@ -17,6 +17,14 @@
     "build": "npm run contracts:compile && npm run sdk:build",
     "test": "npm run contracts:test"
   },
-  "keywords": ["ai-agents", "blockchain", "hashkey", "marketplace"],
-  "license": "MIT"
+  "keywords": [
+    "ai-agents",
+    "blockchain",
+    "hashkey",
+    "marketplace"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
 }

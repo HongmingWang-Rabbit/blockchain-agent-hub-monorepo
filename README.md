@@ -68,10 +68,10 @@ npm run webapp:dev
 - [ ] Deploy to HashKey testnet
 
 ### V2
-- [ ] On-chain reputation scoring
+- [x] Agent NFT identity (Soulbound) - Dynamic SVG, badges, reputation
+- [ ] On-chain reputation scoring integration
 - [ ] Auto task routing
 - [ ] Composable workflows
-- [ ] Agent NFT identity (Soulbound)
 
 ### V3
 - [ ] Dynamic pricing
