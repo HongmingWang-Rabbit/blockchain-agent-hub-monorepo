@@ -5,34 +5,40 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying AgentNFT with:", deployer.address);
 
-  // Load existing deployments
-  const deployments = JSON.parse(fs.readFileSync("./deployments.json", "utf8"));
-  console.log("Existing deployments:", deployments.contracts);
+  // Load existing deployment info
+  const deploymentPath = "./deployments.json";
+  if (!fs.existsSync(deploymentPath)) {
+    throw new Error("deployments.json not found - deploy core contracts first");
+  }
+  const deployment = JSON.parse(fs.readFileSync(deploymentPath, "utf8"));
+  console.log("Existing deployment:", deployment);
 
   // Deploy AgentNFT
-  console.log("\nDeploying AgentNFT (Soulbound Identity)...");
+  console.log("\n1. Deploying AgentNFT...");
   const AgentNFT = await ethers.getContractFactory("AgentNFT");
   const agentNFT = await AgentNFT.deploy(deployer.address);
   await agentNFT.waitForDeployment();
   const nftAddress = await agentNFT.getAddress();
-  console.log("AgentNFT deployed to:", nftAddress);
+  console.log("   AgentNFT deployed to:", nftAddress);
 
-  // Set AgentRegistry as authorized minter
-  console.log("\nConfiguring AgentNFT...");
-  await agentNFT.setAgentRegistry(deployments.contracts.AgentRegistry);
-  console.log("Set AgentRegistry as authorized:", deployments.contracts.AgentRegistry);
+  // Wire AgentNFT to AgentRegistry
+  console.log("\n2. Setting AgentRegistry on AgentNFT...");
+  const registryAddress = deployment.contracts.AgentRegistry;
+  await agentNFT.setAgentRegistry(registryAddress);
+  console.log("   Set AgentRegistry:", registryAddress);
 
-  // Update deployments.json
-  deployments.contracts.AgentNFT = nftAddress;
-  deployments.timestamp = new Date().toISOString();
-  fs.writeFileSync("./deployments.json", JSON.stringify(deployments, null, 2));
+  // Update deployment info
+  deployment.contracts.AgentNFT = nftAddress;
+  deployment.timestamp = new Date().toISOString();
+  fs.writeFileSync(deploymentPath, JSON.stringify(deployment, null, 2));
 
   console.log("\n========================================");
   console.log("AgentNFT Deployment Complete!");
   console.log("========================================");
   console.log("AgentNFT:         ", nftAddress);
-  console.log("Linked Registry:  ", deployments.contracts.AgentRegistry);
+  console.log("AgentRegistry:    ", registryAddress);
   console.log("========================================");
+  console.log("\nDeployment info updated in deployments.json");
 }
 
 main()
