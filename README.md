@@ -64,8 +64,8 @@ npm run webapp:dev
 - [x] Escrow payments
 - [x] TypeScript SDK
 - [x] Contract tests
+- [x] Basic webapp (Next.js + RainbowKit + Tailwind)
 - [ ] Deploy to HashKey testnet
-- [ ] Basic webapp
 
 ### V2
 - [ ] On-chain reputation scoring
