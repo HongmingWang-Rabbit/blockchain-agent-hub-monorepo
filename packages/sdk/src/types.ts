@@ -13,7 +13,34 @@ export interface NetworkConfig {
     agntToken: Address;
     agentRegistry: Address;
     taskMarketplace: Address;
+    agentNFT?: Address; // Optional for backwards compatibility
   };
+}
+
+/**
+ * Agent NFT Identity
+ */
+export interface AgentIdentity {
+  tokenId: bigint;
+  owner: Address;
+  name: string;
+  capabilities: string[];
+  registeredAt: Date;
+  reputationScore: number;
+  tasksCompleted: number;
+  badges: Badge[];
+  svgImage?: string;
+  tokenURI?: string;
+}
+
+/**
+ * Badge data
+ */
+export interface Badge {
+  name: string;
+  description: string;
+  awardedAt: Date;
+  badgeType: number;
 }
 
 /**

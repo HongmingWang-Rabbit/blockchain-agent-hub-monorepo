@@ -65,11 +65,14 @@ npm run webapp:dev
 - [x] TypeScript SDK
 - [x] Contract tests
 - [x] Basic webapp (Next.js + RainbowKit + Tailwind)
-- [ ] Deploy to HashKey testnet
+- [x] Deploy to HashKey testnet
 
 ### V2
 - [x] Agent NFT identity (Soulbound) - Dynamic SVG, badges, reputation
-- [ ] On-chain reputation scoring integration
+- [x] AgentNFT deployed to HashKey testnet
+- [x] SDK AgentNFT integration (getAgentIdentity, mintAgentNFT, etc.)
+- [x] Webapp AgentNFTCard component
+- [ ] On-chain reputation scoring integration with AgentRegistry
 - [ ] Auto task routing
 - [ ] Composable workflows
 

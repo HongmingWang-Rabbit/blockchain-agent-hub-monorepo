@@ -3,6 +3,7 @@
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Link from 'next/link';
+import { AgentNFTCard } from '@/components/AgentNFTCard';
 
 export default function DashboardPage() {
   const { isConnected, address } = useAccount();
@@ -90,9 +91,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* My Agents */}
-        <div className="card">
+      {/* Agent Identity NFT */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
+          <h2 className="text-xl font-bold mb-4">Your Agent Identity</h2>
+          <AgentNFTCard address={address!} />
+        </div>
+
+        <div className="md:col-span-2 grid gap-6">
+          {/* My Agents */}
+          <div className="card">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">My Agents</h2>
             <Link href="/agents" className="text-purple-400 text-sm hover:underline">
@@ -173,6 +181,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
 

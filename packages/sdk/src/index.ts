@@ -23,6 +23,8 @@ export type {
   CreateAgentParams,
   CreateTaskParams,
   AgentHubEvent,
+  AgentIdentity,
+  Badge,
 } from './types';
 
 // Network configs

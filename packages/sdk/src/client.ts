@@ -13,13 +13,15 @@ import {
   formatEther,
 } from 'viem';
 
-import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI } from './abis';
+import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI, AgentNFTABI } from './abis';
 import type {
   NetworkConfig,
   Agent,
   Task,
   CreateAgentParams,
   CreateTaskParams,
+  AgentIdentity,
+  Badge,
 } from './types';
 import { TaskStatus } from './types';
 
@@ -43,6 +45,7 @@ export class AgentHubClient {
   private readonly agntToken;
   private readonly agentRegistry;
   private readonly taskMarketplace;
+  private readonly agentNFT;
 
   constructor(config: AgentHubClientConfig) {
     this.network = config.network;
@@ -89,6 +92,15 @@ export class AgentHubClient {
       abi: TaskMarketplaceABI,
       client: this.publicClient,
     });
+
+    // Initialize AgentNFT if address provided
+    if (config.network.contracts.agentNFT) {
+      this.agentNFT = getContract({
+        address: config.network.contracts.agentNFT,
+        abi: AgentNFTABI,
+        client: this.publicClient,
+      });
+    }
   }
 
   // Helper for write operations
@@ -405,6 +417,125 @@ export class AgentHubClient {
   async getTaskCount(): Promise<number> {
     const count = await this.taskMarketplace.read.getTaskCount();
     return Number(count);
+  }
+
+  // ========== Agent NFT Operations ==========
+
+  /**
+   * Check if AgentNFT is available
+   */
+  hasNFTContract(): boolean {
+    return !!this.agentNFT;
+  }
+
+  /**
+   * Check if an address has an Agent NFT
+   */
+  async hasAgentNFT(address: Address): Promise<boolean> {
+    if (!this.agentNFT) return false;
+    return this.agentNFT.read.hasNFT([address]) as Promise<boolean>;
+  }
+
+  /**
+   * Get token ID for an agent address
+   */
+  async getAgentTokenId(address: Address): Promise<bigint | null> {
+    if (!this.agentNFT) return null;
+    const hasNFT = await this.hasAgentNFT(address);
+    if (!hasNFT) return null;
+    return this.agentNFT.read.agentToToken([address]) as Promise<bigint>;
+  }
+
+  /**
+   * Get Agent Identity by token ID
+   */
+  async getAgentIdentity(tokenId: bigint): Promise<AgentIdentity | null> {
+    if (!this.agentNFT) return null;
+    
+    try {
+      const owner = await this.agentNFT.read.ownerOf([tokenId]) as Address;
+      const identity = await this.agentNFT.read.agentIdentities([tokenId]) as readonly [string, bigint, bigint, bigint];
+      const badgesRaw = await this.agentNFT.read.getBadges([tokenId]) as readonly {
+        name: string;
+        description: string;
+        awardedAt: bigint;
+        badgeType: number;
+      }[];
+      
+      return {
+        tokenId,
+        owner,
+        name: identity[0],
+        capabilities: [], // Not stored in identity struct directly
+        registeredAt: new Date(Number(identity[1]) * 1000),
+        reputationScore: Number(identity[2]),
+        tasksCompleted: Number(identity[3]),
+        badges: badgesRaw.map(b => ({
+          name: b.name,
+          description: b.description,
+          awardedAt: new Date(Number(b.awardedAt) * 1000),
+          badgeType: b.badgeType,
+        })),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get Agent Identity by address
+   */
+  async getAgentIdentityByAddress(address: Address): Promise<AgentIdentity | null> {
+    const tokenId = await this.getAgentTokenId(address);
+    if (tokenId === null) return null;
+    return this.getAgentIdentity(tokenId);
+  }
+
+  /**
+   * Get SVG image for an agent NFT
+   */
+  async getAgentSVG(tokenId: bigint): Promise<string | null> {
+    if (!this.agentNFT) return null;
+    try {
+      return this.agentNFT.read.generateSVG([tokenId]) as Promise<string>;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get token URI (full metadata with image)
+   */
+  async getAgentTokenURI(tokenId: bigint): Promise<string | null> {
+    if (!this.agentNFT) return null;
+    try {
+      return this.agentNFT.read.tokenURI([tokenId]) as Promise<string>;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get total NFT supply
+   */
+  async getNFTTotalSupply(): Promise<number> {
+    if (!this.agentNFT) return 0;
+    const supply = await this.agentNFT.read.totalSupply();
+    return Number(supply);
+  }
+
+  /**
+   * Mint Agent NFT (owner/registry only)
+   */
+  async mintAgentNFT(agent: Address, name: string, capabilities: string[]): Promise<Hex> {
+    if (!this.agentNFT) throw new Error('AgentNFT contract not configured');
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.agentNFT!,
+      abi: AgentNFTABI,
+      functionName: 'mintAgentNFT',
+      args: [agent, name, capabilities],
+      ...this.getWriteParams(),
+    });
   }
 
   // ========== Utility ==========
