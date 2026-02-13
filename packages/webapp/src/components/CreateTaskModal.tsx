@@ -1,41 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { parseEther } from 'viem';
+import { usePriceRange, usePricingInfo } from '@/hooks/usePricing';
+import { STANDARD_CAPABILITIES } from '@/contracts/abis';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const CAPABILITY_OPTIONS = [
-  'code-review',
-  'debugging',
-  'documentation',
-  'data-analysis',
-  'visualization',
-  'content-writing',
-  'translation',
-  'image-generation',
-  'audio-transcription',
-  'web-scraping',
-];
-
 export function CreateTaskModal({ isOpen, onClose }: Props) {
   const { address } = useAccount();
   const [title, setTitle] = useState('');
   const [descriptionURI, setDescriptionURI] = useState('');
-  const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([]);
-  const [reward, setReward] = useState('50');
+  const [selectedCapability, setSelectedCapability] = useState<string>('');
+  const [reward, setReward] = useState('');
   const [deadline, setDeadline] = useState('');
   const [requiresHuman, setRequiresHuman] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleCapability = (cap: string) => {
-    setSelectedCapabilities((prev) =>
-      prev.includes(cap) ? prev.filter((c) => c !== cap) : [...prev, cap]
-    );
+  const { priceRange } = usePriceRange(selectedCapability || 'default');
+  const { pricingInfo } = usePricingInfo();
+
+  // Auto-set reward when capability changes
+  useEffect(() => {
+    if (priceRange?.current && !reward) {
+      setReward(parseFloat(priceRange.current).toFixed(0));
+    }
+  }, [priceRange, reward]);
+
+  const handleCapabilityChange = (cap: string) => {
+    setSelectedCapability(cap);
+    setReward(''); // Reset reward to trigger auto-fill
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,17 +42,17 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
 
     setIsSubmitting(true);
     try {
-      // TODO: Connect to SDK after contract deployment
+      // TODO: Connect to actual contract
       console.log('Creating task:', {
         title,
         descriptionURI,
-        requiredCapabilities: selectedCapabilities,
+        requiredCapability: selectedCapability,
         reward: parseEther(reward).toString(),
         deadline: new Date(deadline),
         requiresHumanVerification: requiresHuman,
       });
       
-      alert('Task creation will work after contract deployment!');
+      alert('Task creation will work after contract integration!');
       onClose();
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -70,6 +68,9 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
     .toISOString()
     .slice(0, 16);
 
+  const surgeActive = pricingInfo && pricingInfo.surgeMultiplier > 1;
+  const isPeak = pricingInfo?.isPeakHours;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -81,6 +82,24 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
             ×
           </button>
         </div>
+
+        {/* Pricing Status */}
+        {(surgeActive || isPeak) && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4 text-sm">
+            <div className="flex items-center gap-2">
+              {surgeActive && (
+                <span className="text-yellow-400">
+                  ⚡ {pricingInfo.surgeMultiplier}x surge pricing active
+                </span>
+              )}
+              {isPeak && (
+                <span className="text-orange-400">
+                  🌅 Peak hours (+15%)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -108,15 +127,15 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Required Capabilities</label>
+            <label className="block text-sm font-medium mb-2">Required Capability</label>
             <div className="flex flex-wrap gap-2">
-              {CAPABILITY_OPTIONS.map((cap) => (
+              {STANDARD_CAPABILITIES.map((cap) => (
                 <button
                   key={cap}
                   type="button"
-                  onClick={() => toggleCapability(cap)}
+                  onClick={() => handleCapabilityChange(cap)}
                   className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    selectedCapabilities.includes(cap)
+                    selectedCapability === cap
                       ? 'bg-blue-500 text-white'
                       : 'bg-white/10 text-white/70 hover:bg-white/20'
                   }`}
@@ -133,12 +152,20 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
               <input
                 type="number"
                 className="input w-full"
-                placeholder="50"
+                placeholder={priceRange?.current || '15'}
                 min="1"
                 value={reward}
                 onChange={(e) => setReward(e.target.value)}
                 required
               />
+              {priceRange && (
+                <p className="text-xs text-white/50 mt-1">
+                  Suggested: {parseFloat(priceRange.current).toFixed(0)} AGNT
+                  <span className="text-white/30 ml-1">
+                    (range: {parseFloat(priceRange.min).toFixed(0)}-{parseFloat(priceRange.max).toFixed(0)})
+                  </span>
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Deadline</label>
@@ -171,10 +198,10 @@ export function CreateTaskModal({ isOpen, onClose }: Props) {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !title || selectedCapabilities.length === 0}
+              disabled={isSubmitting || !title || !selectedCapability}
               className="btn-primary flex-1 disabled:opacity-50"
             >
-              {isSubmitting ? 'Creating...' : `Create Task (${reward} AGNT)`}
+              {isSubmitting ? 'Creating...' : `Create Task (${reward || '0'} AGNT)`}
             </button>
           </div>
         </form>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TaskCard } from '@/components/TaskCard';
 import { CreateTaskModal } from '@/components/CreateTaskModal';
+import { PricingBanner } from '@/components/PricingBanner';
 import { useTasks } from '@/hooks/useTasks';
 
 const statusFilters = ['All', 'Open', 'In Progress', 'Completed'];
@@ -39,6 +40,9 @@ export default function TasksPage() {
           </button>
         )}
       </div>
+
+      {/* Pricing Status */}
+      <PricingBanner />
 
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">

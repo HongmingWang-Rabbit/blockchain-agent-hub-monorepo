@@ -470,3 +470,74 @@ export const StepType = {
   Conditional: 2,
   Aggregator: 3,
 } as const;
+
+// DynamicPricing ABI
+export const dynamicPricingAbi = [
+  {
+    name: 'basePrices',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'capability', type: 'string' }],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'calculatePrice',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'capability', type: 'string' },
+      { name: 'agentReputation', type: 'uint256' },
+    ],
+    outputs: [{ name: 'finalPrice', type: 'uint256' }],
+  },
+  {
+    name: 'getPriceRange',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'capability', type: 'string' }],
+    outputs: [
+      { name: 'minPrice', type: 'uint256' },
+      { name: 'maxPrice', type: 'uint256' },
+      { name: 'currentPrice', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'getSurgeMultiplier',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'isPeakHours',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'bool' }],
+  },
+  {
+    name: 'getPricingInfo',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      { name: 'currentSurge', type: 'uint256' },
+      { name: 'isPeak', type: 'bool' },
+      { name: 'tasksLastHour', type: 'uint256' },
+      { name: 'nextSurgeAt', type: 'uint256' },
+    ],
+  },
+] as const;
+
+// Standard capabilities
+export const STANDARD_CAPABILITIES = [
+  'text-generation',
+  'code-review',
+  'data-analysis',
+  'image-generation',
+  'translation',
+  'summarization',
+  'research',
+  'debugging',
+  'documentation',
+] as const;
