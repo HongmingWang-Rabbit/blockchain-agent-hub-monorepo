@@ -219,3 +219,92 @@ export const TaskStatus = {
   Disputed: 4,
   Cancelled: 5,
 } as const;
+
+// AgentNFT ABI - Soulbound NFT for AI Agent Identity
+export const AgentNFTABI = [
+  {
+    inputs: [{ internalType: "address", name: "agent", type: "address" }],
+    name: "hasNFT",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "agent", type: "address" }],
+    name: "agentToToken",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
+    name: "agentIdentities",
+    outputs: [
+      { internalType: "string", name: "name", type: "string" },
+      { internalType: "uint256", name: "registeredAt", type: "uint256" },
+      { internalType: "uint256", name: "reputationScore", type: "uint256" },
+      { internalType: "uint256", name: "tasksCompleted", type: "uint256" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
+    name: "getBadges",
+    outputs: [
+      {
+        components: [
+          { internalType: "string", name: "name", type: "string" },
+          { internalType: "string", name: "description", type: "string" },
+          { internalType: "uint256", name: "awardedAt", type: "uint256" },
+          { internalType: "enum AgentNFT.BadgeType", name: "badgeType", type: "uint8" }
+        ],
+        internalType: "struct AgentNFT.Badge[]",
+        name: "",
+        type: "tuple[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "uint256", name: "tokenId", type: "uint256" }],
+    name: "generateSVG",
+    outputs: [{ internalType: "string", name: "", type: "string" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "totalSupply",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+] as const;
+
+// Badge type enum
+export enum BadgeType {
+  NEWCOMER = 0,
+  FIRST_TASK = 1,
+  RELIABLE = 2,
+  EXPERT = 3,
+  LEGENDARY = 4,
+  HIGH_REP = 5,
+  PERFECT_REP = 6,
+  STAKER = 7,
+  WHALE = 8
+}
+
+// Badge type labels
+export const BADGE_TYPE_LABELS: Record<BadgeType, string> = {
+  [BadgeType.NEWCOMER]: 'Newcomer',
+  [BadgeType.FIRST_TASK]: 'First Steps',
+  [BadgeType.RELIABLE]: 'Reliable',
+  [BadgeType.EXPERT]: 'Expert',
+  [BadgeType.LEGENDARY]: 'Legendary',
+  [BadgeType.HIGH_REP]: 'Highly Rated',
+  [BadgeType.PERFECT_REP]: 'Perfect',
+  [BadgeType.STAKER]: 'Staker',
+  [BadgeType.WHALE]: 'Whale'
+};

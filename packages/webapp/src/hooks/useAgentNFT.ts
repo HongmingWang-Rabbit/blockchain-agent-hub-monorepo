@@ -2,7 +2,7 @@
 
 import { useReadContract, useReadContracts } from 'wagmi';
 import { CONTRACTS } from '@/contracts';
-import { AgentNFTABI, BadgeType, BADGE_TYPE_LABELS } from '@agent-hub/sdk';
+import { AgentNFTABI, BadgeType, BADGE_TYPE_LABELS } from '@/contracts/abis';
 
 export interface AgentNFTData {
   hasNFT: boolean;
