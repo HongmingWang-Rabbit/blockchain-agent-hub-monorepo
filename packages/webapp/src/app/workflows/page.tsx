@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { WorkflowStatus } from '@/contracts/abis';
+import { CreateWorkflowModal } from '@/components/CreateWorkflowModal';
 
 const statusFilters = ['All', 'Draft', 'Active', 'Completed'];
 
@@ -21,6 +22,7 @@ export default function WorkflowsPage() {
   const { isConnected } = useAccount();
   const { workflows, isLoading, refetch } = useWorkflows();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredWorkflows = workflows.filter((wf) => {
     if (activeFilter === 'All') return true;
@@ -42,7 +44,7 @@ export default function WorkflowsPage() {
         </div>
         
         {isConnected && (
-          <button className="btn-primary">
+          <button onClick={() => setIsModalOpen(true)} className="btn-primary">
             + Create Workflow
           </button>
         )}
@@ -162,7 +164,7 @@ export default function WorkflowsPage() {
               : 'No workflows match your filter.'}
           </p>
           {isConnected && workflows.length === 0 && (
-            <button className="btn-primary">
+            <button onClick={() => setIsModalOpen(true)} className="btn-primary">
               + Create Workflow
             </button>
           )}
@@ -196,6 +198,14 @@ export default function WorkflowsPage() {
           </div>
         </div>
       </div>
+
+      <CreateWorkflowModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          refetch();
+        }}
+      />
     </div>
   );
 }
