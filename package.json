@@ -1,0 +1,18 @@
+{
+  "name": "blockchain-agent-hub-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Decentralized AI Agent Marketplace on HashKey Chain",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "contracts:compile": "cd packages/contracts && npx hardhat compile",
+    "contracts:test": "cd packages/contracts && npx hardhat test",
+    "contracts:deploy": "cd packages/contracts && npx hardhat run scripts/deploy.ts",
+    "webapp:dev": "cd packages/webapp && npm run dev",
+    "webapp:build": "cd packages/webapp && npm run build"
+  },
+  "keywords": ["ai-agents", "blockchain", "hashkey", "marketplace"],
+  "license": "MIT"
+}
