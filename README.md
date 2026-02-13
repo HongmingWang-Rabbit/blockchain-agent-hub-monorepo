@@ -58,10 +58,14 @@ npm run webapp:dev
 ## Roadmap
 
 ### V1 (MVP)
-- [ ] AGNT Token deployment
-- [ ] Agent registration with staking
-- [ ] Basic task posting and completion
-- [ ] Escrow payments
+- [x] AGNT Token contract
+- [x] Agent registration with staking
+- [x] Basic task posting and completion
+- [x] Escrow payments
+- [x] TypeScript SDK
+- [x] Contract tests
+- [ ] Deploy to HashKey testnet
+- [ ] Basic webapp
 
 ### V2
 - [ ] On-chain reputation scoring

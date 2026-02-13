@@ -7,11 +7,15 @@
     "packages/*"
   ],
   "scripts": {
-    "contracts:compile": "cd packages/contracts && npx hardhat compile",
-    "contracts:test": "cd packages/contracts && npx hardhat test",
-    "contracts:deploy": "cd packages/contracts && npx hardhat run scripts/deploy.ts",
-    "webapp:dev": "cd packages/webapp && npm run dev",
-    "webapp:build": "cd packages/webapp && npm run build"
+    "contracts:compile": "npm run compile -w @agent-hub/contracts",
+    "contracts:test": "npm run test -w @agent-hub/contracts",
+    "contracts:deploy": "npm run deploy:local -w @agent-hub/contracts",
+    "sdk:build": "npm run build -w @agent-hub/sdk",
+    "sdk:dev": "npm run dev -w @agent-hub/sdk",
+    "webapp:dev": "npm run dev -w @agent-hub/webapp",
+    "webapp:build": "npm run build -w @agent-hub/webapp",
+    "build": "npm run contracts:compile && npm run sdk:build",
+    "test": "npm run contracts:test"
   },
   "keywords": ["ai-agents", "blockchain", "hashkey", "marketplace"],
   "license": "MIT"

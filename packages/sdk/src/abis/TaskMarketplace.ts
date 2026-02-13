@@ -1,0 +1,266 @@
+export const TaskMarketplaceABI = [
+  // State variables
+  {
+    inputs: [],
+    name: 'agntToken',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'agentRegistry',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'platformFeePercent',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'autoReleaseTimeout',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'minTaskReward',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'tasks',
+    outputs: [
+      { name: 'id', type: 'bytes32' },
+      { name: 'requester', type: 'address' },
+      { name: 'assignedAgent', type: 'bytes32' },
+      { name: 'title', type: 'string' },
+      { name: 'descriptionURI', type: 'string' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'createdAt', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'submittedAt', type: 'uint256' },
+      { name: 'resultURI', type: 'string' },
+      { name: 'status', type: 'uint8' },
+      { name: 'requiresHumanVerification', type: 'bool' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '', type: 'uint256' }],
+    name: 'allTaskIds',
+    outputs: [{ name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Core functions
+  {
+    inputs: [
+      { name: 'title', type: 'string' },
+      { name: 'descriptionURI', type: 'string' },
+      { name: 'requiredCapabilities', type: 'string[]' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' },
+      { name: 'requiresHumanVerification', type: 'bool' },
+    ],
+    name: 'createTask',
+    outputs: [{ name: 'taskId', type: 'bytes32' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'taskId', type: 'bytes32' },
+      { name: 'agentId', type: 'bytes32' },
+    ],
+    name: 'acceptTask',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'taskId', type: 'bytes32' },
+      { name: 'resultURI', type: 'string' },
+    ],
+    name: 'submitResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'approveResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'autoRelease',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'taskId', type: 'bytes32' },
+      { name: 'reason', type: 'string' },
+    ],
+    name: 'rejectResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'taskId', type: 'bytes32' },
+      { name: 'inFavorOfAgent', type: 'bool' },
+    ],
+    name: 'resolveDispute',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'cancelTask',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // View functions
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'getBestAgentForTask',
+    outputs: [
+      { name: 'bestAgent', type: 'bytes32' },
+      { name: 'bestScore', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getTaskCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    name: 'getTaskCapabilities',
+    outputs: [{ name: '', type: 'string[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Admin functions
+  {
+    inputs: [{ name: '_feePercent', type: 'uint256' }],
+    name: 'setPlatformFee',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_timeout', type: 'uint256' }],
+    name: 'setAutoReleaseTimeout',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Events
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: true, name: 'requester', type: 'address' },
+      { indexed: false, name: 'reward', type: 'uint256' },
+    ],
+    name: 'TaskCreated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+    ],
+    name: 'TaskAssigned',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'resultURI', type: 'string' },
+    ],
+    name: 'TaskSubmitted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'payout', type: 'uint256' },
+    ],
+    name: 'TaskCompleted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: false, name: 'reason', type: 'string' },
+    ],
+    name: 'TaskDisputed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, name: 'taskId', type: 'bytes32' }],
+    name: 'TaskCancelled',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'reason', type: 'string' },
+    ],
+    name: 'TaskFailed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'taskId', type: 'bytes32' },
+      { indexed: false, name: 'inFavorOfAgent', type: 'bool' },
+    ],
+    name: 'DisputeResolved',
+    type: 'event',
+  },
+] as const;
+
+export enum TaskStatus {
+  Open = 0,
+  Assigned = 1,
+  Submitted = 2,
+  PendingReview = 3,
+  Completed = 4,
+  Disputed = 5,
+  Cancelled = 6,
+  Failed = 7,
+}
