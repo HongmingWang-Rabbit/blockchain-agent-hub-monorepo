@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
+import Link from 'next/link';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { WorkflowStatus } from '@/contracts/abis';
 import { CreateWorkflowModal } from '@/components/CreateWorkflowModal';
@@ -141,11 +142,12 @@ export default function WorkflowsPage() {
                       </div>
                     </div>
 
-                    {workflow.status === WorkflowStatus.Active && (
-                      <button className="btn-secondary whitespace-nowrap">
-                        View Steps
-                      </button>
-                    )}
+                    <Link
+                      href={`/workflows/${workflow.id}`}
+                      className="btn-secondary whitespace-nowrap"
+                    >
+                      {workflow.status === WorkflowStatus.Draft ? 'Edit' : 'View'}
+                    </Link>
                   </div>
                 </div>
               </div>

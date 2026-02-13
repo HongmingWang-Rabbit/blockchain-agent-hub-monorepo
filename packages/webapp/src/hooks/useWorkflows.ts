@@ -146,6 +146,60 @@ export function useWorkflows() {
   };
 }
 
+export function useWorkflowSteps(workflowId: `0x${string}` | undefined) {
+  const { data: stepIds } = useReadContract({
+    address: CONTRACTS.WORKFLOW_ENGINE,
+    abi: workflowEngineAbi,
+    functionName: 'getWorkflowSteps',
+    args: workflowId ? [workflowId] : undefined,
+    query: { enabled: !!workflowId },
+  });
+
+  const stepDataCalls = useMemo(() => {
+    if (!stepIds || !workflowId) return [];
+    return (stepIds as `0x${string}`[]).map((stepId) => ({
+      address: CONTRACTS.WORKFLOW_ENGINE as `0x${string}`,
+      abi: workflowEngineAbi,
+      functionName: 'workflowSteps' as const,
+      args: [workflowId, stepId] as const,
+    }));
+  }, [stepIds, workflowId]);
+
+  const { data: stepData, isLoading, refetch } = useReadContracts({
+    contracts: stepDataCalls,
+  });
+
+  const steps = useMemo((): WorkflowStep[] => {
+    if (!stepIds || !stepData) return [];
+
+    return (stepIds as `0x${string}`[]).map((stepId, i) => {
+      const result = stepData[i];
+      if (result?.status !== 'success') {
+        return null;
+      }
+      const d = result.result as [
+        `0x${string}`, string, string, `0x${string}`, bigint, number, number, string, string, bigint, bigint
+      ];
+      return {
+        id: d[0],
+        name: d[1],
+        capability: d[2],
+        assignedAgent: d[3],
+        reward: d[4],
+        stepType: d[5],
+        status: d[6],
+        statusLabel: stepStatusLabels[d[6]] || 'Unknown',
+        inputURI: d[7],
+        outputURI: d[8],
+        startedAt: Number(d[9]),
+        completedAt: Number(d[10]),
+      };
+    }).filter(Boolean) as WorkflowStep[];
+  }, [stepIds, stepData]);
+
+  return { steps, isLoading, refetch };
+}
+
 export function useCreateWorkflow() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
@@ -165,4 +219,84 @@ export function useCreateWorkflow() {
   };
 
   return { create, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useAddStep() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const addStep = (
+    workflowId: `0x${string}`,
+    name: string,
+    capability: string,
+    reward: bigint,
+    stepType: number,
+    dependencies: `0x${string}`[],
+    inputURI: string
+  ) => {
+    writeContract({
+      address: CONTRACTS.WORKFLOW_ENGINE,
+      abi: workflowEngineAbi,
+      functionName: 'addStep',
+      args: [workflowId, name, capability, reward, stepType, dependencies, inputURI],
+    });
+  };
+
+  return { addStep, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useStartWorkflow() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const start = (workflowId: `0x${string}`) => {
+    writeContract({
+      address: CONTRACTS.WORKFLOW_ENGINE,
+      abi: workflowEngineAbi,
+      functionName: 'startWorkflow',
+      args: [workflowId],
+    });
+  };
+
+  return { start, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useAcceptStep() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const accept = (
+    workflowId: `0x${string}`,
+    stepId: `0x${string}`,
+    agentId: `0x${string}`
+  ) => {
+    writeContract({
+      address: CONTRACTS.WORKFLOW_ENGINE,
+      abi: workflowEngineAbi,
+      functionName: 'acceptStep',
+      args: [workflowId, stepId, agentId],
+    });
+  };
+
+  return { accept, isPending, isConfirming, isSuccess, error, hash };
+}
+
+export function useCompleteStep() {
+  const { writeContract, data: hash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const complete = (
+    workflowId: `0x${string}`,
+    stepId: `0x${string}`,
+    outputURI: string
+  ) => {
+    writeContract({
+      address: CONTRACTS.WORKFLOW_ENGINE,
+      abi: workflowEngineAbi,
+      functionName: 'completeStep',
+      args: [workflowId, stepId, outputURI],
+    });
+  };
+
+  return { complete, isPending, isConfirming, isSuccess, error, hash };
 }
