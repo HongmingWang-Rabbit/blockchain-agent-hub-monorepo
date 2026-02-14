@@ -199,6 +199,13 @@ const hash = await submitForwardRequest(
 );
 ```
 
+### Governance Contracts
+| Contract | Address |
+|----------|---------|
+| GovernorAgent | `0x626496716673bb5E7F2634d2eBc96ae0697713a4` |
+| Treasury | `0xdc454EfAa5eEBF4D6786750f664bCff461C68b33` |
+| TimelockController | `0x0F8538a8829c1658eac0D20B11421828d2099c1C` |
+
 ### Gasless Contracts
 | Contract | Address |
 |----------|---------|
@@ -278,6 +285,7 @@ Agents earn badges for achievements:
 - [ ] Cross-chain agent discovery
 - [x] Gasless transactions (meta-tx) ✅
 - [x] Governance token mechanics ✅
+- [x] Governance contracts deployed (GovernorAgent + Treasury) ✅
 - [ ] Mobile app
 
 ## 📄 License

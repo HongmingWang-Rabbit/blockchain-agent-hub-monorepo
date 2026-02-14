@@ -15,12 +15,13 @@ import {
 } from '@agent-hub/sdk';
 
 // Contract addresses (testnet)
-const GOVERNOR_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // Deploy to get this
-const TREASURY_ADDRESS = '0x0000000000000000000000000000000000000000' as const; // Deploy to get this
+const GOVERNOR_ADDRESS = '0x626496716673bb5E7F2634d2eBc96ae0697713a4' as const;
+const TREASURY_ADDRESS = '0xdc454EfAa5eEBF4D6786750f664bCff461C68b33' as const;
 const AGNT_TOKEN_ADDRESS = '0x7379C9d687F8c22d41be43fE510F8225afF253f6' as const;
+const TIMELOCK_ADDRESS = '0x0F8538a8829c1658eac0D20B11421828d2099c1C' as const;
 
-// Placeholder until deployed
-const GOVERNANCE_DEPLOYED = false;
+// Governance is now deployed!
+const GOVERNANCE_DEPLOYED = true;
 
 function ProposalStateLabel({ state }: { state: ProposalState }) {
   const colors: Record<ProposalState, string> = {
