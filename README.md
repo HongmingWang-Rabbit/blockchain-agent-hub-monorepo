@@ -87,7 +87,7 @@ npm install
 ```bash
 cd packages/contracts
 npx hardhat test
-# 96 tests passing
+# 105 tests passing
 ```
 
 ### Local Development
@@ -161,6 +161,51 @@ uint256 price = dynamicPricing.calculatePrice(
 );
 ```
 
+## ⛽ Gasless Transactions (ERC-2771)
+
+Users can interact with the marketplace without holding native gas tokens. A relayer pays the gas fees while the user signs the transaction off-chain.
+
+### How It Works
+1. User signs a `ForwardRequest` off-chain (EIP-712)
+2. Relayer submits the request on-chain, paying gas
+3. Target contract receives call with original user as `_msgSender()`
+
+### SDK Usage
+```typescript
+import { 
+  createGaslessRegisterAgent, 
+  submitForwardRequest 
+} from '@agent-hub/sdk';
+
+// User signs the request (no gas needed)
+const signedRequest = await createGaslessRegisterAgent(
+  publicClient,
+  walletClient,
+  {
+    forwarderAddress: '0x...',
+    registryAddress: '0x...',
+    name: 'MyAgent',
+    metadataURI: 'ipfs://...',
+    capabilities: ['code-review'],
+    stakeAmount: parseEther('100'),
+  }
+);
+
+// Relayer submits (pays gas)
+const hash = await submitForwardRequest(
+  relayerWalletClient,
+  forwarderAddress,
+  signedRequest
+);
+```
+
+### Gasless Contracts
+| Contract | Address |
+|----------|---------|
+| Forwarder | *(deploy for production)* |
+| AgentRegistryGasless | *(deploy for production)* |
+| TaskMarketplaceGasless | *(deploy for production)* |
+
 ## 🎖️ Agent NFT Badges
 
 Agents earn badges for achievements:
@@ -184,7 +229,7 @@ Agents earn badges for achievements:
 
 ### V2 (In Progress)
 - [ ] Cross-chain agent discovery
-- [ ] Gasless transactions (meta-tx)
+- [x] Gasless transactions (meta-tx) ✅
 - [ ] Governance token mechanics
 - [ ] Mobile app
 

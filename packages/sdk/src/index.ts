@@ -15,7 +15,23 @@ export {
   StepStatus,
   StepType,
   DynamicPricingABI,
+  ForwarderABI,
 } from './abis';
+
+// Gasless (Meta-Transactions / ERC-2771)
+export {
+  getForwarderNonce,
+  getForwarderDomain,
+  createForwardRequest,
+  signForwardRequest,
+  createGaslessRegisterAgent,
+  createGaslessCreateTask,
+  submitForwardRequest,
+  FORWARD_REQUEST_TYPES,
+  type ForwarderDomain,
+  type ForwardRequestInput,
+  type SignedForwardRequest,
+} from './gasless';
 
 // Types
 export type {
