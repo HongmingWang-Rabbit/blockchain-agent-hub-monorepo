@@ -47,13 +47,16 @@ describe('TaskMarketplace', function () {
     );
     const agentId = event?.args?.agentId;
 
-    return { token, registry, marketplace, owner, requester, agentOwner, agentId };
+    // Get latest block timestamp for consistent deadline calculations
+    const latestTime = await time.latest();
+
+    return { token, registry, marketplace, owner, requester, agentOwner, agentId, latestTime };
   }
 
   describe('Task Creation', function () {
     it('Should create a task successfully', async function () {
-      const { marketplace, requester } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400; // 24h from now
+      const { marketplace, requester, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400; // 24h from now
 
       const tx = await marketplace.connect(requester).createTask(
         'Summarize Document',
@@ -68,8 +71,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should reject task with reward below minimum', async function () {
-      const { marketplace, requester } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       await expect(
         marketplace.connect(requester).createTask(
@@ -84,8 +87,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should reject task with past deadline', async function () {
-      const { marketplace, requester } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) - 100; // In the past
+      const { marketplace, requester, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime - 100; // In the past
 
       await expect(
         marketplace.connect(requester).createTask(
@@ -100,8 +103,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should escrow tokens on task creation', async function () {
-      const { marketplace, requester, token } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, token, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
       const reward = ethers.parseEther('10');
 
       const balanceBefore = await token.balanceOf(requester.address);
@@ -122,8 +125,8 @@ describe('TaskMarketplace', function () {
 
   describe('Task Acceptance', function () {
     it('Should allow agent to accept task', async function () {
-      const { marketplace, requester, agentOwner, agentId } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -149,8 +152,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should reject acceptance of non-open task', async function () {
-      const { marketplace, requester, agentOwner, agentId } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -180,8 +183,8 @@ describe('TaskMarketplace', function () {
   describe('Result Submission', function () {
     async function createAndAcceptTask() {
       const fixture = await loadFixture(deployMarketplaceFixture);
-      const { marketplace, requester, agentOwner, agentId } = fixture;
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = fixture;
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -227,8 +230,8 @@ describe('TaskMarketplace', function () {
   describe('Result Approval', function () {
     async function createSubmittedTask() {
       const fixture = await loadFixture(deployMarketplaceFixture);
-      const { marketplace, requester, agentOwner, agentId, token } = fixture;
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, token, latestTime } = fixture;
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -279,8 +282,8 @@ describe('TaskMarketplace', function () {
   describe('Disputes', function () {
     async function createSubmittedTask() {
       const fixture = await loadFixture(deployMarketplaceFixture);
-      const { marketplace, requester, agentOwner, agentId } = fixture;
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = fixture;
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -348,8 +351,8 @@ describe('TaskMarketplace', function () {
 
   describe('Task Cancellation', function () {
     it('Should allow requester to cancel open task', async function () {
-      const { marketplace, requester, token } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, token, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
       const reward = ethers.parseEther('50');
 
       const tx = await marketplace.connect(requester).createTask(
@@ -378,8 +381,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should reject cancellation of assigned task', async function () {
-      const { marketplace, requester, agentOwner, agentId } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -406,8 +409,8 @@ describe('TaskMarketplace', function () {
 
   describe('Auto Release', function () {
     it('Should auto-release after timeout', async function () {
-      const { marketplace, requester, agentOwner, agentId, token } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, token, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',
@@ -438,8 +441,8 @@ describe('TaskMarketplace', function () {
     });
 
     it('Should reject auto-release before timeout', async function () {
-      const { marketplace, requester, agentOwner, agentId } = await loadFixture(deployMarketplaceFixture);
-      const deadline = Math.floor(Date.now() / 1000) + 86400;
+      const { marketplace, requester, agentOwner, agentId, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
 
       const tx = await marketplace.connect(requester).createTask(
         'Test Task',

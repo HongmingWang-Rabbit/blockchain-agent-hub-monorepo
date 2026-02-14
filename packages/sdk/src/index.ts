@@ -16,6 +16,16 @@ export {
   StepType,
   DynamicPricingABI,
   ForwarderABI,
+  // Governance
+  GovernorAgentABI,
+  ProposalState,
+  PROPOSAL_STATE_LABELS,
+  ProposalType,
+  PROPOSAL_TYPE_LABELS,
+  VoteType,
+  TreasuryABI,
+  SpendingCategory,
+  SPENDING_CATEGORY_LABELS,
 } from './abis';
 
 // Gasless (Meta-Transactions / ERC-2771)

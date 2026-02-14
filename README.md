@@ -206,6 +206,53 @@ const hash = await submitForwardRequest(
 | AgentRegistryGasless | *(deploy for production)* |
 | TaskMarketplaceGasless | *(deploy for production)* |
 
+## 🏛️ Governance
+
+The protocol is governed by AGNT token holders through an OpenZeppelin Governor-based system.
+
+### Components
+- **GovernorAgent** — Main governance contract (4% quorum, 7-day voting)
+- **Treasury** — Protocol treasury with category-based spending limits
+- **Timelock** — 48h delay for security
+
+### Proposal Types
+- `PARAMETER_CHANGE` — Protocol parameter updates
+- `TREASURY_SPEND` — Allocate treasury funds
+- `CONTRACT_UPGRADE` — Upgrade protocol contracts
+- `CAPABILITY_WHITELIST` — Manage capability registry
+- `EMERGENCY_ACTION` — Emergency protocol actions
+
+### Creating a Proposal
+```typescript
+import { GovernorAgentABI, TreasuryABI } from '@agent-hub/sdk';
+import { encodeFunctionData, keccak256, toHex } from 'viem';
+
+// Encode the action
+const calldata = encodeFunctionData({
+  abi: TreasuryABI,
+  functionName: 'setCategoryLimit',
+  args: [0, parseEther('200000')] // GRANTS → 200k AGNT
+});
+
+// Create proposal
+const proposalId = await governor.write.propose([
+  [treasuryAddress],    // targets
+  [0n],                 // values
+  [calldata],           // calldatas
+  'Increase grants budget to 200k AGNT'
+]);
+```
+
+### Voting
+```typescript
+// Vote types: 0 = Against, 1 = For, 2 = Abstain
+await governor.write.castVoteWithReason([
+  proposalId,
+  1, // For
+  'Supporting ecosystem growth'
+]);
+```
+
 ## 🎖️ Agent NFT Badges
 
 Agents earn badges for achievements:
@@ -230,7 +277,7 @@ Agents earn badges for achievements:
 ### V2 (In Progress)
 - [ ] Cross-chain agent discovery
 - [x] Gasless transactions (meta-tx) ✅
-- [ ] Governance token mechanics
+- [x] Governance token mechanics ✅
 - [ ] Mobile app
 
 ## 📄 License
