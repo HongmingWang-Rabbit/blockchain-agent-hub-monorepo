@@ -13,7 +13,7 @@ import {
   formatEther,
 } from 'viem';
 
-import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI, AgentNFTABI } from './abis';
+import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI, AgentNFTABI, WorkflowEngineABI, DynamicPricingABI } from './abis';
 import type {
   NetworkConfig,
   Agent,
@@ -22,8 +22,14 @@ import type {
   CreateTaskParams,
   AgentIdentity,
   Badge,
+  Workflow,
+  WorkflowStep,
+  CreateWorkflowParams,
+  AddStepParams,
+  PricingInfo,
+  PriceRange,
 } from './types';
-import { TaskStatus } from './types';
+import { TaskStatus, WorkflowStatus, StepStatus, StepType } from './types';
 
 /**
  * SDK Client configuration
@@ -46,6 +52,8 @@ export class AgentHubClient {
   private readonly agentRegistry;
   private readonly taskMarketplace;
   private readonly agentNFT;
+  private readonly workflowEngine;
+  private readonly dynamicPricing;
 
   constructor(config: AgentHubClientConfig) {
     this.network = config.network;
@@ -98,6 +106,24 @@ export class AgentHubClient {
       this.agentNFT = getContract({
         address: config.network.contracts.agentNFT,
         abi: AgentNFTABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize WorkflowEngine if address provided
+    if (config.network.contracts.workflowEngine) {
+      this.workflowEngine = getContract({
+        address: config.network.contracts.workflowEngine,
+        abi: WorkflowEngineABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize DynamicPricing if address provided
+    if (config.network.contracts.dynamicPricing) {
+      this.dynamicPricing = getContract({
+        address: config.network.contracts.dynamicPricing,
+        abi: DynamicPricingABI,
         client: this.publicClient,
       });
     }
@@ -573,5 +599,278 @@ export class AgentHubClient {
     if (!this.walletClient) {
       throw new Error('Wallet client required for write operations');
     }
+  }
+
+  // ========== Workflow Operations ==========
+
+  /**
+   * Check if WorkflowEngine is available
+   */
+  hasWorkflowEngine(): boolean {
+    return !!this.workflowEngine;
+  }
+
+  /**
+   * Create a new workflow
+   */
+  async createWorkflow(params: CreateWorkflowParams): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    // Approve tokens for budget
+    const approveTx = await this.approveTokens(
+      this.network.contracts.workflowEngine!,
+      params.budget
+    );
+    await this.publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+    const deadline = BigInt(Math.floor(params.deadline.getTime() / 1000));
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'createWorkflow',
+      args: [params.name, params.description, params.budget, deadline],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Get workflow by ID
+   */
+  async getWorkflow(workflowId: Hex): Promise<Workflow | null> {
+    if (!this.workflowEngine) return null;
+    
+    const data = await this.workflowEngine.read.workflows([workflowId]);
+    const zeroBytes32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    
+    if (data[0] === zeroBytes32) {
+      return null;
+    }
+
+    return {
+      id: data[0] as Hex,
+      creator: data[1] as Address,
+      name: data[2] as string,
+      description: data[3] as string,
+      totalBudget: data[4] as bigint,
+      spent: data[5] as bigint,
+      status: Number(data[6]) as WorkflowStatus,
+      createdAt: new Date(Number(data[7]) * 1000),
+      deadline: new Date(Number(data[8]) * 1000),
+    };
+  }
+
+  /**
+   * Get workflow step IDs
+   */
+  async getWorkflowSteps(workflowId: Hex): Promise<Hex[]> {
+    if (!this.workflowEngine) return [];
+    return this.workflowEngine.read.getWorkflowSteps([workflowId]) as Promise<Hex[]>;
+  }
+
+  /**
+   * Get workflow step by ID
+   */
+  async getWorkflowStep(workflowId: Hex, stepId: Hex): Promise<WorkflowStep | null> {
+    if (!this.workflowEngine) return null;
+    
+    const data = await this.workflowEngine.read.workflowSteps([workflowId, stepId]);
+    const zeroBytes32 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    
+    if (data[0] === zeroBytes32) {
+      return null;
+    }
+
+    return {
+      id: data[0] as Hex,
+      name: data[1] as string,
+      capability: data[2] as string,
+      assignedAgent: data[3] === zeroBytes32 ? null : (data[3] as Hex),
+      reward: data[4] as bigint,
+      stepType: Number(data[5]) as StepType,
+      status: Number(data[6]) as StepStatus,
+      inputURI: data[7] as string,
+      outputURI: data[8] || null,
+      startedAt: Number(data[9]) > 0 ? new Date(Number(data[9]) * 1000) : null,
+      completedAt: Number(data[10]) > 0 ? new Date(Number(data[10]) * 1000) : null,
+    };
+  }
+
+  /**
+   * Get ready steps (available for agents to claim)
+   */
+  async getReadySteps(workflowId: Hex): Promise<Hex[]> {
+    if (!this.workflowEngine) return [];
+    return this.workflowEngine.read.getReadySteps([workflowId]) as Promise<Hex[]>;
+  }
+
+  /**
+   * Add a step to a workflow
+   */
+  async addStep(params: AddStepParams): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'addStep',
+      args: [
+        params.workflowId,
+        params.name,
+        params.capability,
+        params.reward,
+        params.stepType ?? StepType.Sequential,
+        params.dependencies ?? [],
+        params.inputURI ?? '',
+      ],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Start a workflow
+   */
+  async startWorkflow(workflowId: Hex): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'startWorkflow',
+      args: [workflowId],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Accept a workflow step as an agent
+   */
+  async acceptStep(workflowId: Hex, stepId: Hex, agentId: Hex): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'acceptStep',
+      args: [workflowId, stepId, agentId],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Complete a workflow step
+   */
+  async completeStep(workflowId: Hex, stepId: Hex, outputURI: string): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'completeStep',
+      args: [workflowId, stepId, outputURI],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Cancel a workflow
+   */
+  async cancelWorkflow(workflowId: Hex): Promise<Hex> {
+    if (!this.workflowEngine) throw new Error('WorkflowEngine contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.workflowEngine!,
+      abi: WorkflowEngineABI,
+      functionName: 'cancelWorkflow',
+      args: [workflowId],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Get total workflow count
+   */
+  async getWorkflowCount(): Promise<number> {
+    if (!this.workflowEngine) return 0;
+    const count = await this.workflowEngine.read.getWorkflowCount();
+    return Number(count);
+  }
+
+  // ========== Dynamic Pricing Operations ==========
+
+  /**
+   * Check if DynamicPricing is available
+   */
+  hasDynamicPricing(): boolean {
+    return !!this.dynamicPricing;
+  }
+
+  /**
+   * Calculate price for a capability with agent reputation
+   */
+  async calculatePrice(capability: string, agentReputation: number): Promise<bigint> {
+    if (!this.dynamicPricing) throw new Error('DynamicPricing contract not configured');
+    return this.dynamicPricing.read.calculatePrice([capability, BigInt(agentReputation)]) as Promise<bigint>;
+  }
+
+  /**
+   * Get price range for a capability
+   */
+  async getPriceRange(capability: string): Promise<PriceRange> {
+    if (!this.dynamicPricing) throw new Error('DynamicPricing contract not configured');
+    const result = await this.dynamicPricing.read.getPriceRange([capability]);
+    return {
+      minPrice: result[0] as bigint,
+      maxPrice: result[1] as bigint,
+      currentPrice: result[2] as bigint,
+    };
+  }
+
+  /**
+   * Get current pricing information
+   */
+  async getPricingInfo(): Promise<PricingInfo> {
+    if (!this.dynamicPricing) throw new Error('DynamicPricing contract not configured');
+    const result = await this.dynamicPricing.read.getPricingInfo();
+    return {
+      currentSurge: Number(result[0]),
+      isPeak: result[1] as boolean,
+      tasksLastHour: Number(result[2]),
+      nextSurgeAt: Number(result[3]),
+    };
+  }
+
+  /**
+   * Get current surge multiplier (basis points, 10000 = 1x)
+   */
+  async getSurgeMultiplier(): Promise<number> {
+    if (!this.dynamicPricing) return 10000;
+    const multiplier = await this.dynamicPricing.read.getSurgeMultiplier();
+    return Number(multiplier);
+  }
+
+  /**
+   * Check if currently peak hours
+   */
+  async isPeakHours(): Promise<boolean> {
+    if (!this.dynamicPricing) return false;
+    return this.dynamicPricing.read.isPeakHours() as Promise<boolean>;
+  }
+
+  /**
+   * Get reputation discount (basis points)
+   */
+  async getReputationDiscount(reputation: number): Promise<number> {
+    if (!this.dynamicPricing) return 0;
+    const discount = await this.dynamicPricing.read.getReputationDiscount([BigInt(reputation)]);
+    return Number(discount);
+  }
+
+  /**
+   * Get base price for a capability
+   */
+  async getBasePrice(capability: string): Promise<bigint> {
+    if (!this.dynamicPricing) throw new Error('DynamicPricing contract not configured');
+    return this.dynamicPricing.read.basePrices([capability]) as Promise<bigint>;
   }
 }

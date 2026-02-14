@@ -1,7 +1,8 @@
 import type { Address, Hex } from 'viem';
 import { TaskStatus } from './abis/TaskMarketplace';
+import { WorkflowStatus, StepStatus, StepType } from './abis/WorkflowEngine';
 
-export { TaskStatus };
+export { TaskStatus, WorkflowStatus, StepStatus, StepType };
 
 /**
  * Network configuration
@@ -13,7 +14,9 @@ export interface NetworkConfig {
     agntToken: Address;
     agentRegistry: Address;
     taskMarketplace: Address;
-    agentNFT?: Address; // Optional for backwards compatibility
+    agentNFT?: Address;
+    workflowEngine?: Address;
+    dynamicPricing?: Address;
   };
 }
 
@@ -58,11 +61,14 @@ export const HASHKEY_MAINNET: NetworkConfig = {
 
 export const HASHKEY_TESTNET: NetworkConfig = {
   chainId: 133,
-  rpcUrl: 'https://testnet.hashkeychain.com',
+  rpcUrl: 'https://hashkeychain-testnet.alt.technology',
   contracts: {
-    agntToken: '0x0000000000000000000000000000000000000000' as Address,
-    agentRegistry: '0x0000000000000000000000000000000000000000' as Address,
-    taskMarketplace: '0x0000000000000000000000000000000000000000' as Address,
+    agntToken: '0x7379C9d687F8c22d41be43fE510F8225afF253f6' as Address,
+    agentRegistry: '0xb044E947E8eCf2d954E9C1e26970bEe128e9EB49' as Address,
+    taskMarketplace: '0x7907ec09f1d1854Fd4dA26E1a9e357Fd0d797061' as Address,
+    agentNFT: '0x4476e726B4030923bD29C98F8881Da2727B6a0B6' as Address,
+    workflowEngine: '0x1c3e038fE4491d5e76673FFC9a02f90F85e3AEEd' as Address,
+    dynamicPricing: '0x418e9aD294fDCfF5dC927a942CFf431ee8e55ad3' as Address,
   },
 };
 
@@ -184,4 +190,87 @@ export type AgentHubEvent =
   | { type: 'TaskCreated'; taskId: Hex; requester: Address; reward: bigint }
   | { type: 'TaskAssigned'; taskId: Hex; agentId: Hex }
   | { type: 'TaskCompleted'; taskId: Hex; agentId: Hex; payout: bigint }
-  | { type: 'TaskDisputed'; taskId: Hex; reason: string };
+  | { type: 'TaskDisputed'; taskId: Hex; reason: string }
+  | { type: 'WorkflowCreated'; workflowId: Hex; creator: Address; name: string }
+  | { type: 'WorkflowStarted'; workflowId: Hex }
+  | { type: 'WorkflowCompleted'; workflowId: Hex; totalSpent: bigint }
+  | { type: 'StepCompleted'; workflowId: Hex; stepId: Hex; outputURI: string };
+
+// ========== Workflow Types ==========
+
+/**
+ * Workflow data structure
+ */
+export interface Workflow {
+  id: Hex;
+  creator: Address;
+  name: string;
+  description: string;
+  totalBudget: bigint;
+  spent: bigint;
+  status: WorkflowStatus;
+  createdAt: Date;
+  deadline: Date;
+  steps?: WorkflowStep[];
+}
+
+/**
+ * Workflow step data structure
+ */
+export interface WorkflowStep {
+  id: Hex;
+  name: string;
+  capability: string;
+  assignedAgent: Hex | null;
+  reward: bigint;
+  stepType: StepType;
+  status: StepStatus;
+  inputURI: string;
+  outputURI: string | null;
+  startedAt: Date | null;
+  completedAt: Date | null;
+}
+
+/**
+ * Create workflow parameters
+ */
+export interface CreateWorkflowParams {
+  name: string;
+  description: string;
+  budget: bigint;
+  deadline: Date;
+}
+
+/**
+ * Add step parameters
+ */
+export interface AddStepParams {
+  workflowId: Hex;
+  name: string;
+  capability: string;
+  reward: bigint;
+  stepType?: StepType;
+  dependencies?: Hex[];
+  inputURI?: string;
+}
+
+// ========== Dynamic Pricing Types ==========
+
+/**
+ * Pricing information
+ */
+export interface PricingInfo {
+  currentSurge: number; // Basis points (10000 = 1x)
+  isPeak: boolean;
+  tasksLastHour: number;
+  nextSurgeAt: number; // Task count threshold
+}
+
+/**
+ * Price range for a capability
+ */
+export interface PriceRange {
+  minPrice: bigint;
+  maxPrice: bigint;
+  currentPrice: bigint;
+}

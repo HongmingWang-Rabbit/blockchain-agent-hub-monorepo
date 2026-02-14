@@ -9,7 +9,12 @@ export {
   TaskStatus,
   AgentNFTABI,
   BadgeType,
-  BADGE_TYPE_LABELS
+  BADGE_TYPE_LABELS,
+  WorkflowEngineABI,
+  WorkflowStatus,
+  StepStatus,
+  StepType,
+  DynamicPricingABI,
 } from './abis';
 
 // Types
@@ -25,6 +30,12 @@ export type {
   AgentHubEvent,
   AgentIdentity,
   Badge,
+  Workflow,
+  WorkflowStep,
+  CreateWorkflowParams,
+  AddStepParams,
+  PricingInfo,
+  PriceRange,
 } from './types';
 
 // Network configs
