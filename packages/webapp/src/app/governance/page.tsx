@@ -17,6 +17,7 @@ import {
   useVoting,
   useHasVoted,
 } from '../../hooks/useGovernance';
+import { useProposals, IndexedProposal, useProposalTimeRemaining } from '../../hooks/useProposals';
 import DelegateModal from '../../components/DelegateModal';
 import CreateProposalModal from '../../components/CreateProposalModal';
 
@@ -137,29 +138,25 @@ function VotingPower({ onDelegateClick }: { onDelegateClick: () => void }) {
   );
 }
 
-function ProposalCard({ 
-  proposal, 
-  onVote 
-}: { 
-  proposal: {
-    id: string;
-    title: string;
-    proposer: string;
-    state: ProposalState;
-    forVotes: string;
-    againstVotes: string;
-    abstainVotes: string;
-    endTime: string;
-  };
-  onVote?: (proposalId: string, support: VoteType) => void;
-}) {
+function ProposalEndTime({ endBlock }: { endBlock: bigint }) {
+  const timeRemaining = useProposalTimeRemaining(endBlock);
+  return <span>{timeRemaining}</span>;
+}
+
+function RealProposalCard({ proposal }: { proposal: IndexedProposal }) {
   const { castVote, isPending } = useVoting();
-  const proposalIdBigInt = BigInt(proposal.id);
-  const hasVoted = useHasVoted(proposalIdBigInt);
+  const hasVoted = useHasVoted(proposal.proposalId);
 
   const handleVote = (support: VoteType) => {
-    castVote(proposalIdBigInt, support);
+    castVote(proposal.proposalId, support);
   };
+
+  const totalVotes = proposal.forVotes + proposal.againstVotes + proposal.abstainVotes;
+  const zero = BigInt(0);
+  const hundred = BigInt(100);
+  const forPercent = totalVotes > zero ? Number((proposal.forVotes * hundred) / totalVotes) : 0;
+  const againstPercent = totalVotes > zero ? Number((proposal.againstVotes * hundred) / totalVotes) : 0;
+  const abstainPercent = totalVotes > zero ? Number((proposal.abstainVotes * hundred) / totalVotes) : 0;
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 hover:border-purple-500/50 transition-colors">
@@ -167,16 +164,31 @@ function ProposalCard({
         <div>
           <h3 className="font-semibold">{proposal.title}</h3>
           <div className="text-sm text-white/60">
-            by {proposal.proposer} • {proposal.endTime}
+            by {proposal.proposer.slice(0, 6)}...{proposal.proposer.slice(-4)} • <ProposalEndTime endBlock={proposal.endBlock} />
           </div>
         </div>
         <ProposalStateLabel state={proposal.state} />
       </div>
 
       <div className="space-y-2 mb-4">
-        <VoteBar label="For" value={proposal.forVotes} color="bg-green-500" />
-        <VoteBar label="Against" value={proposal.againstVotes} color="bg-red-500" />
-        <VoteBar label="Abstain" value={proposal.abstainVotes} color="bg-gray-500" />
+        <RealVoteBar 
+          label="For" 
+          value={proposal.forVotes} 
+          percent={forPercent} 
+          color="bg-green-500" 
+        />
+        <RealVoteBar 
+          label="Against" 
+          value={proposal.againstVotes} 
+          percent={againstPercent} 
+          color="bg-red-500" 
+        />
+        <RealVoteBar 
+          label="Abstain" 
+          value={proposal.abstainVotes} 
+          percent={abstainPercent} 
+          color="bg-gray-500" 
+        />
       </div>
 
       {proposal.state === ProposalState.Active && !hasVoted && (
@@ -220,66 +232,38 @@ function ProposalCard({
   );
 }
 
-function VoteBar({ label, value, color }: { label: string; value: string; color: string }) {
-  const numValue = parseFloat(value.replace(/,/g, ''));
-  const total = 15_100_000;
-  const percentage = (numValue / total) * 100;
-
+function RealVoteBar({ label, value, percent, color }: { label: string; value: bigint; percent: number; color: string }) {
+  const formatted = Number(formatEther(value)).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  
   return (
     <div className="flex items-center gap-3">
       <div className="w-16 text-sm text-white/60">{label}</div>
       <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
         <div 
           className={`h-full ${color} rounded-full transition-all`}
-          style={{ width: `${Math.min(percentage, 100)}%` }}
+          style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="w-24 text-right text-sm font-medium">{value}</div>
+      <div className="w-28 text-right text-sm font-medium">{formatted} AGNT</div>
     </div>
   );
 }
 
 function ProposalsList({ onCreateClick }: { onCreateClick: () => void }) {
-  // NOTE: In production, you'd fetch real proposal IDs from events and query each
-  // For now, we show sample proposals - replace with actual proposal indexing
-  const mockProposals = [
-    {
-      id: '1',
-      title: 'Increase Grants Budget to 200k AGNT',
-      proposer: '0x1234...5678',
-      state: ProposalState.Active,
-      forVotes: '12,500,000',
-      againstVotes: '2,100,000',
-      abstainVotes: '500,000',
-      endTime: 'in 2 days',
-    },
-    {
-      id: '2',
-      title: 'Add "machine-learning" to Capability Whitelist',
-      proposer: '0xabcd...efgh',
-      state: ProposalState.Succeeded,
-      forVotes: '18,200,000',
-      againstVotes: '1,800,000',
-      abstainVotes: '200,000',
-      endTime: 'ended',
-    },
-    {
-      id: '3',
-      title: 'Q1 2026 Developer Grant Program',
-      proposer: '0x9999...1111',
-      state: ProposalState.Executed,
-      forVotes: '22,000,000',
-      againstVotes: '500,000',
-      abstainVotes: '100,000',
-      endTime: 'executed',
-    },
-  ];
+  const { proposals, isLoading, error, refetch } = useProposals();
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <span>📜</span> Proposals
+          <button 
+            onClick={refetch}
+            className="text-sm text-white/40 hover:text-white/60 transition-colors"
+            title="Refresh proposals"
+          >
+            🔄
+          </button>
         </h2>
         <button 
           onClick={onCreateClick}
@@ -289,14 +273,39 @@ function ProposalsList({ onCreateClick }: { onCreateClick: () => void }) {
         </button>
       </div>
 
-      <div className="space-y-4">
-        {mockProposals.map((proposal) => (
-          <ProposalCard key={proposal.id} proposal={proposal} />
-        ))}
-      </div>
+      {isLoading && (
+        <div className="text-center py-8 text-white/60">
+          <span className="animate-spin inline-block mr-2">⏳</span>
+          Loading proposals...
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+          Error loading proposals: {error.message}
+        </div>
+      )}
+
+      {!isLoading && !error && proposals.length === 0 && (
+        <div className="text-center py-8">
+          <div className="text-4xl mb-3">📭</div>
+          <div className="text-white/60 mb-2">No proposals yet</div>
+          <div className="text-sm text-white/40">
+            Be the first to create a governance proposal!
+          </div>
+        </div>
+      )}
+
+      {!isLoading && proposals.length > 0 && (
+        <div className="space-y-4">
+          {proposals.map((proposal) => (
+            <RealProposalCard key={proposal.id} proposal={proposal} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-blue-300">
-        💡 <strong>Note:</strong> Real proposals will appear here once created. Create your first proposal to see live voting!
+        💡 <strong>Tip:</strong> Proposals are indexed from on-chain events. Create a proposal to participate in governance!
       </div>
     </div>
   );
