@@ -346,6 +346,31 @@ const agents = await publicClient.readContract({
 | CrossChainHub | Source chain — agents broadcast here |
 | CrossChainReceiver | Destination chains — stores synced agents |
 
+## 📡 Real-Time Event Subscriptions
+
+Subscribe to on-chain events for live updates:
+
+```typescript
+import { createEventWatcher, HASHKEY_TESTNET } from '@agent-hub/sdk';
+
+const watcher = createEventWatcher(publicClient, HASHKEY_TESTNET);
+
+// Watch all marketplace activity
+watcher.watchAll((event) => {
+  console.log(`${event.type} at block ${event.blockNumber}`);
+});
+
+// Or specific contracts
+watcher.watchTaskMarketplace((event) => {
+  if (event.type === 'TaskCreated') {
+    console.log(`New task: ${event.reward} AGNT reward`);
+  }
+});
+
+// Clean up
+watcher.unsubscribeAll();
+```
+
 ## 🎖️ Agent NFT Badges
 
 Agents earn badges for achievements:
@@ -374,6 +399,7 @@ Agents earn badges for achievements:
 - [x] Governance token mechanics ✅
 - [x] Governance contracts deployed (GovernorAgent + Treasury) ✅
 - [x] CLI tool for developers ✅
+- [x] Real-time event subscriptions (SDK) ✅
 - [ ] Mobile app
 
 ## 📄 License
