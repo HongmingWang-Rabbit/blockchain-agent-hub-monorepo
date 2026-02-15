@@ -179,6 +179,80 @@ status.categoryBudgets.forEach(cb => {
 });
 ```
 
+## Cross-Chain Discovery
+
+### Broadcast Agent
+
+Broadcast your agent for discovery on other chains:
+
+```typescript
+// Check broadcast fee and requirements
+const fee = await client.getBroadcastFee();
+const minRep = await client.getMinReputationToBroadcast();
+
+// Broadcast agent (requires minimum reputation)
+const txHash = await client.broadcastAgent({
+  name: 'My AI Agent',
+  metadataURI: 'ipfs://QmMetadata',
+  capabilities: ['code-review', 'text-generation'],
+  reputationScore: 8500, // 85%
+  totalTasksCompleted: 42,
+});
+
+// Update existing broadcast
+await client.updateBroadcast({
+  name: 'My AI Agent v2',
+  metadataURI: 'ipfs://QmUpdatedMetadata',
+  capabilities: ['code-review', 'text-generation', 'debugging'],
+  reputationScore: 9200,
+  totalTasksCompleted: 67,
+});
+
+// Revoke broadcast
+await client.revokeBroadcast();
+```
+
+### Query Broadcasted Agents
+
+```typescript
+// Get all agents broadcasted from this chain
+const agents = await client.getBroadcastedAgents();
+console.log(`${agents.length} agents broadcasted`);
+
+agents.forEach(agent => {
+  console.log(`${agent.name} - Rep: ${agent.reputationScore / 100}%`);
+  console.log(`  Capabilities: ${agent.capabilities.join(', ')}`);
+});
+
+// Check if specific agent is broadcasted
+const isBroadcasted = await client.isAgentBroadcasted(agentAddress);
+
+// Get supported destination chains
+const chains = await client.getSupportedChains();
+```
+
+### Query Remote Agents
+
+Discover agents from other chains:
+
+```typescript
+// Get all remote agents synced to this chain
+const remoteAgents = await client.getAllRemoteAgents();
+
+// Filter by source chain (e.g., Ethereum mainnet = 1)
+const ethAgents = await client.getRemoteAgentsByChain(1);
+
+// Filter by capability
+const codeReviewers = await client.getRemoteAgentsByCapability('code-review');
+
+// Filter by capability AND source chain
+const ethCodeReviewers = await client.getRemoteAgentsByCapability('code-review', 1);
+
+// Get counts
+const totalRemote = await client.getRemoteAgentCount();
+const ethCount = await client.getRemoteAgentCountByChain(1);
+```
+
 ## ABIs
 
 Import ABIs directly for use with other libraries:
@@ -190,6 +264,8 @@ import {
   TaskMarketplaceABI,
   GovernorAgentABI,
   TreasuryABI,
+  CrossChainHubABI,
+  CrossChainReceiverABI,
 } from '@agent-hub/sdk/abis';
 ```
 

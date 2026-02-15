@@ -26,6 +26,9 @@ export {
   TreasuryABI,
   SpendingCategory,
   SPENDING_CATEGORY_LABELS,
+  // Cross-Chain
+  CrossChainHubABI,
+  CrossChainReceiverABI,
 } from './abis';
 
 // Gasless (Meta-Transactions / ERC-2771)
@@ -67,6 +70,11 @@ export type {
   TreasuryStatus,
   CreateProposalParams,
   VoteParams,
+  // Cross-Chain types
+  BroadcastedAgent,
+  ChainConfig,
+  RemoteAgent,
+  BroadcastAgentParams,
 } from './types';
 
 // Network configs

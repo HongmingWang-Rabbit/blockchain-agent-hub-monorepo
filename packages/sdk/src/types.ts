@@ -21,6 +21,8 @@ export interface NetworkConfig {
     governor?: Address;
     treasury?: Address;
     timelock?: Address;
+    crossChainHub?: Address;
+    crossChainReceiver?: Address;
   };
 }
 
@@ -77,6 +79,8 @@ export const HASHKEY_TESTNET: NetworkConfig = {
     governor: '0x626496716673bb5E7F2634d2eBc96ae0697713a4' as Address,
     treasury: '0xdc454EfAa5eEBF4D6786750f664bCff461C68b33' as Address,
     timelock: '0x0F8538a8829c1658eac0D20B11421828d2099c1C' as Address,
+    crossChainHub: '0x6349F97FEeb19D9646a34f81904b50bB704FAD08' as Address,
+    crossChainReceiver: '0x5Ae42BA8EDcB98deFF361E088AF09F9880e5C2b9' as Address,
   },
 };
 
@@ -341,4 +345,56 @@ export interface VoteParams {
   proposalId: bigint;
   support: number; // 0 = Against, 1 = For, 2 = Abstain
   reason?: string;
+}
+
+// ========== Cross-Chain Types ==========
+
+/**
+ * Broadcasted agent data from CrossChainHub
+ */
+export interface BroadcastedAgent {
+  owner: Address;
+  name: string;
+  metadataURI: string;
+  capabilities: string[];
+  reputationScore: number;
+  totalTasksCompleted: number;
+  broadcastTimestamp: Date;
+  isActive: boolean;
+}
+
+/**
+ * Supported chain configuration
+ */
+export interface ChainConfig {
+  chainId: number;
+  name: string;
+  receiverContract: Address;
+  isActive: boolean;
+}
+
+/**
+ * Remote agent from CrossChainReceiver
+ */
+export interface RemoteAgent {
+  sourceChainId: number;
+  owner: Address;
+  name: string;
+  metadataURI: string;
+  capabilities: string[];
+  reputationScore: number;
+  totalTasksCompleted: number;
+  lastSyncTimestamp: Date;
+  isActive: boolean;
+}
+
+/**
+ * Broadcast agent parameters
+ */
+export interface BroadcastAgentParams {
+  name: string;
+  metadataURI: string;
+  capabilities: string[];
+  reputationScore: number;
+  totalTasksCompleted: number;
 }

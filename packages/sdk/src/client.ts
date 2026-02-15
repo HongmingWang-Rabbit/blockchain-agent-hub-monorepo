@@ -23,6 +23,8 @@ import {
   GovernorAgentABI,
   TreasuryABI,
   SpendingCategory,
+  CrossChainHubABI,
+  CrossChainReceiverABI,
 } from './abis';
 import type {
   NetworkConfig,
@@ -42,6 +44,10 @@ import type {
   TreasuryStatus,
   CreateProposalParams,
   VoteParams,
+  BroadcastedAgent,
+  ChainConfig,
+  RemoteAgent,
+  BroadcastAgentParams,
 } from './types';
 import { TaskStatus, WorkflowStatus, StepStatus, StepType } from './types';
 
@@ -70,6 +76,8 @@ export class AgentHubClient {
   private readonly dynamicPricing;
   private readonly governor;
   private readonly treasury;
+  private readonly crossChainHub;
+  private readonly crossChainReceiver;
 
   constructor(config: AgentHubClientConfig) {
     this.network = config.network;
@@ -158,6 +166,24 @@ export class AgentHubClient {
       this.treasury = getContract({
         address: config.network.contracts.treasury,
         abi: TreasuryABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize CrossChainHub if address provided
+    if (config.network.contracts.crossChainHub) {
+      this.crossChainHub = getContract({
+        address: config.network.contracts.crossChainHub,
+        abi: CrossChainHubABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize CrossChainReceiver if address provided
+    if (config.network.contracts.crossChainReceiver) {
+      this.crossChainReceiver = getContract({
+        address: config.network.contracts.crossChainReceiver,
+        abi: CrossChainReceiverABI,
         client: this.publicClient,
       });
     }
@@ -1304,5 +1330,287 @@ export class AgentHubClient {
    */
   async getCurrentVotes(account: Address): Promise<bigint> {
     return this.agntToken.read.getVotes([account]) as Promise<bigint>;
+  }
+
+  // ========== Cross-Chain Operations ==========
+
+  /**
+   * Check if CrossChainHub is available
+   */
+  hasCrossChainHub(): boolean {
+    return !!this.crossChainHub;
+  }
+
+  /**
+   * Check if CrossChainReceiver is available
+   */
+  hasCrossChainReceiver(): boolean {
+    return !!this.crossChainReceiver;
+  }
+
+  /**
+   * Get broadcast fee (in native token)
+   */
+  async getBroadcastFee(): Promise<bigint> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    return this.crossChainHub.read.broadcastFee() as Promise<bigint>;
+  }
+
+  /**
+   * Get minimum reputation required to broadcast
+   */
+  async getMinReputationToBroadcast(): Promise<number> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    const minRep = await this.crossChainHub.read.minReputationToBroadcast();
+    return Number(minRep);
+  }
+
+  /**
+   * Check if an agent is already broadcasted
+   */
+  async isAgentBroadcasted(agentAddress: Address): Promise<boolean> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    return this.crossChainHub.read.isBroadcasted([agentAddress]) as Promise<boolean>;
+  }
+
+  /**
+   * Get count of broadcasted agents
+   */
+  async getBroadcastedAgentCount(): Promise<number> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    const count = await this.crossChainHub.read.getBroadcastedAgentCount();
+    return Number(count);
+  }
+
+  /**
+   * Get all broadcasted agents
+   */
+  async getBroadcastedAgents(): Promise<BroadcastedAgent[]> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    
+    const agents = await this.crossChainHub.read.getBroadcastedAgents() as readonly {
+      owner: Address;
+      name: string;
+      metadataURI: string;
+      capabilities: readonly string[];
+      reputationScore: bigint;
+      totalTasksCompleted: bigint;
+      broadcastTimestamp: bigint;
+      isActive: boolean;
+    }[];
+
+    return agents.map(agent => ({
+      owner: agent.owner,
+      name: agent.name,
+      metadataURI: agent.metadataURI,
+      capabilities: [...agent.capabilities],
+      reputationScore: Number(agent.reputationScore),
+      totalTasksCompleted: Number(agent.totalTasksCompleted),
+      broadcastTimestamp: new Date(Number(agent.broadcastTimestamp) * 1000),
+      isActive: agent.isActive,
+    }));
+  }
+
+  /**
+   * Get supported chains for cross-chain discovery
+   */
+  async getSupportedChains(): Promise<ChainConfig[]> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    
+    const chains = await this.crossChainHub.read.getSupportedChains() as readonly {
+      chainId: bigint;
+      name: string;
+      receiverContract: Address;
+      isActive: boolean;
+    }[];
+
+    return chains.map(chain => ({
+      chainId: Number(chain.chainId),
+      name: chain.name,
+      receiverContract: chain.receiverContract,
+      isActive: chain.isActive,
+    }));
+  }
+
+  /**
+   * Broadcast agent for cross-chain discovery
+   */
+  async broadcastAgent(params: BroadcastAgentParams): Promise<Hex> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    
+    const fee = await this.getBroadcastFee();
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.crossChainHub!,
+      abi: CrossChainHubABI,
+      functionName: 'broadcastAgent',
+      args: [
+        params.name,
+        params.metadataURI,
+        params.capabilities,
+        BigInt(params.reputationScore),
+        BigInt(params.totalTasksCompleted),
+      ],
+      value: fee,
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Update existing broadcast
+   */
+  async updateBroadcast(params: BroadcastAgentParams): Promise<Hex> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.crossChainHub!,
+      abi: CrossChainHubABI,
+      functionName: 'updateBroadcast',
+      args: [
+        params.name,
+        params.metadataURI,
+        params.capabilities,
+        BigInt(params.reputationScore),
+        BigInt(params.totalTasksCompleted),
+      ],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Revoke cross-chain broadcast
+   */
+  async revokeBroadcast(): Promise<Hex> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.crossChainHub!,
+      abi: CrossChainHubABI,
+      functionName: 'revokeBroadcast',
+      args: [],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Get agent capabilities from broadcast
+   */
+  async getBroadcastedAgentCapabilities(agentAddress: Address): Promise<string[]> {
+    if (!this.crossChainHub) throw new Error('CrossChainHub contract not configured');
+    return this.crossChainHub.read.getAgentCapabilities([agentAddress]) as Promise<string[]>;
+  }
+
+  // ========== Cross-Chain Receiver Operations ==========
+
+  /**
+   * Get all remote agents from other chains
+   */
+  async getAllRemoteAgents(): Promise<RemoteAgent[]> {
+    if (!this.crossChainReceiver) throw new Error('CrossChainReceiver contract not configured');
+    
+    const agents = await this.crossChainReceiver.read.getAllRemoteAgents() as readonly {
+      sourceChainId: bigint;
+      owner: Address;
+      name: string;
+      metadataURI: string;
+      capabilities: readonly string[];
+      reputationScore: bigint;
+      totalTasksCompleted: bigint;
+      lastSyncTimestamp: bigint;
+      isActive: boolean;
+    }[];
+
+    return agents.map(agent => ({
+      sourceChainId: Number(agent.sourceChainId),
+      owner: agent.owner,
+      name: agent.name,
+      metadataURI: agent.metadataURI,
+      capabilities: [...agent.capabilities],
+      reputationScore: Number(agent.reputationScore),
+      totalTasksCompleted: Number(agent.totalTasksCompleted),
+      lastSyncTimestamp: new Date(Number(agent.lastSyncTimestamp) * 1000),
+      isActive: agent.isActive,
+    }));
+  }
+
+  /**
+   * Get remote agents by source chain
+   */
+  async getRemoteAgentsByChain(sourceChainId: number): Promise<RemoteAgent[]> {
+    if (!this.crossChainReceiver) throw new Error('CrossChainReceiver contract not configured');
+    
+    const agents = await this.crossChainReceiver.read.getAgentsBySourceChain([BigInt(sourceChainId)]) as readonly {
+      sourceChainId: bigint;
+      owner: Address;
+      name: string;
+      metadataURI: string;
+      capabilities: readonly string[];
+      reputationScore: bigint;
+      totalTasksCompleted: bigint;
+      lastSyncTimestamp: bigint;
+      isActive: boolean;
+    }[];
+
+    return agents.map(agent => ({
+      sourceChainId: Number(agent.sourceChainId),
+      owner: agent.owner,
+      name: agent.name,
+      metadataURI: agent.metadataURI,
+      capabilities: [...agent.capabilities],
+      reputationScore: Number(agent.reputationScore),
+      totalTasksCompleted: Number(agent.totalTasksCompleted),
+      lastSyncTimestamp: new Date(Number(agent.lastSyncTimestamp) * 1000),
+      isActive: agent.isActive,
+    }));
+  }
+
+  /**
+   * Get remote agents by capability
+   */
+  async getRemoteAgentsByCapability(capability: string, sourceChainId?: number): Promise<RemoteAgent[]> {
+    if (!this.crossChainReceiver) throw new Error('CrossChainReceiver contract not configured');
+    
+    const chainId = sourceChainId ?? 0;
+    const agents = await this.crossChainReceiver.read.getAgentsByCapability([capability, BigInt(chainId)]) as readonly {
+      sourceChainId: bigint;
+      owner: Address;
+      name: string;
+      metadataURI: string;
+      capabilities: readonly string[];
+      reputationScore: bigint;
+      totalTasksCompleted: bigint;
+      lastSyncTimestamp: bigint;
+      isActive: boolean;
+    }[];
+
+    return agents.map(agent => ({
+      sourceChainId: Number(agent.sourceChainId),
+      owner: agent.owner,
+      name: agent.name,
+      metadataURI: agent.metadataURI,
+      capabilities: [...agent.capabilities],
+      reputationScore: Number(agent.reputationScore),
+      totalTasksCompleted: Number(agent.totalTasksCompleted),
+      lastSyncTimestamp: new Date(Number(agent.lastSyncTimestamp) * 1000),
+      isActive: agent.isActive,
+    }));
+  }
+
+  /**
+   * Get total count of remote agents
+   */
+  async getRemoteAgentCount(): Promise<number> {
+    if (!this.crossChainReceiver) throw new Error('CrossChainReceiver contract not configured');
+    const count = await this.crossChainReceiver.read.totalRemoteAgents();
+    return Number(count);
+  }
+
+  /**
+   * Get remote agent count by chain
+   */
+  async getRemoteAgentCountByChain(sourceChainId: number): Promise<number> {
+    if (!this.crossChainReceiver) throw new Error('CrossChainReceiver contract not configured');
+    const count = await this.crossChainReceiver.read.getAgentCountByChain([BigInt(sourceChainId)]);
+    return Number(count);
   }
 }

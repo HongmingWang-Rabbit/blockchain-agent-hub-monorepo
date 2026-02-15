@@ -9,6 +9,9 @@ import {
   StepType,
   ProposalState,
   SpendingCategory,
+  type BroadcastedAgent,
+  type ChainConfig,
+  type RemoteAgent,
 } from './index';
 
 describe('AgentHubClient', () => {
@@ -65,10 +68,12 @@ describe('AgentHubClient', () => {
     it('should have TaskStatus enum', () => {
       expect(TaskStatus.Open).toBe(0);
       expect(TaskStatus.Assigned).toBe(1);
-      expect(TaskStatus.Completed).toBe(2);
-      expect(TaskStatus.Verified).toBe(3);
-      expect(TaskStatus.Disputed).toBe(4);
-      expect(TaskStatus.Cancelled).toBe(5);
+      expect(TaskStatus.Submitted).toBe(2);
+      expect(TaskStatus.PendingReview).toBe(3);
+      expect(TaskStatus.Completed).toBe(4);
+      expect(TaskStatus.Disputed).toBe(5);
+      expect(TaskStatus.Cancelled).toBe(6);
+      expect(TaskStatus.Failed).toBe(7);
     });
 
     it('should have WorkflowStatus enum', () => {
@@ -396,6 +401,142 @@ describe('AgentHubClient', () => {
       await expect(
         client.delegateVotes('0x0000000000000000000000000000000000000001')
       ).rejects.toThrow('Wallet client required');
+    });
+  });
+
+  describe('cross-chain operations (live testnet)', () => {
+    it('should have cross-chain contracts configured', () => {
+      expect(client.hasCrossChainHub()).toBe(true);
+      expect(client.hasCrossChainReceiver()).toBe(true);
+    });
+
+    it('should have correct cross-chain contract addresses', () => {
+      expect(client.network.contracts.crossChainHub).toBe('0x6349F97FEeb19D9646a34f81904b50bB704FAD08');
+      expect(client.network.contracts.crossChainReceiver).toBe('0x5Ae42BA8EDcB98deFF361E088AF09F9880e5C2b9');
+    });
+
+    it('should get broadcast fee', async () => {
+      const fee = await client.getBroadcastFee();
+      expect(typeof fee).toBe('bigint');
+    });
+
+    it('should get minimum reputation to broadcast', async () => {
+      const minRep = await client.getMinReputationToBroadcast();
+      expect(typeof minRep).toBe('number');
+      expect(minRep).toBeGreaterThanOrEqual(0);
+      expect(minRep).toBeLessThanOrEqual(10000);
+    });
+
+    it('should check if agent is broadcasted', async () => {
+      const isBroadcasted = await client.isAgentBroadcasted('0x0000000000000000000000000000000000000001');
+      expect(typeof isBroadcasted).toBe('boolean');
+    });
+
+    it('should get broadcasted agent count', async () => {
+      const count = await client.getBroadcastedAgentCount();
+      expect(typeof count).toBe('number');
+      expect(count).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should get all broadcasted agents', async () => {
+      const agents = await client.getBroadcastedAgents();
+      expect(Array.isArray(agents)).toBe(true);
+      
+      if (agents.length > 0) {
+        const agent = agents[0];
+        expect(agent).toHaveProperty('owner');
+        expect(agent).toHaveProperty('name');
+        expect(agent).toHaveProperty('metadataURI');
+        expect(agent).toHaveProperty('capabilities');
+        expect(agent).toHaveProperty('reputationScore');
+        expect(agent).toHaveProperty('totalTasksCompleted');
+        expect(agent).toHaveProperty('broadcastTimestamp');
+        expect(agent).toHaveProperty('isActive');
+        expect(Array.isArray(agent.capabilities)).toBe(true);
+        expect(agent.broadcastTimestamp).toBeInstanceOf(Date);
+      }
+    });
+
+    it('should get supported chains', async () => {
+      const chains = await client.getSupportedChains();
+      expect(Array.isArray(chains)).toBe(true);
+      
+      if (chains.length > 0) {
+        const chain = chains[0];
+        expect(chain).toHaveProperty('chainId');
+        expect(chain).toHaveProperty('name');
+        expect(chain).toHaveProperty('receiverContract');
+        expect(chain).toHaveProperty('isActive');
+        expect(typeof chain.chainId).toBe('number');
+        expect(typeof chain.name).toBe('string');
+      }
+    });
+  });
+
+  describe('cross-chain receiver operations (live testnet)', () => {
+    it('should get remote agent count', async () => {
+      const count = await client.getRemoteAgentCount();
+      expect(typeof count).toBe('number');
+      expect(count).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should get all remote agents', async () => {
+      const agents = await client.getAllRemoteAgents();
+      expect(Array.isArray(agents)).toBe(true);
+      
+      if (agents.length > 0) {
+        const agent = agents[0];
+        expect(agent).toHaveProperty('owner');
+        expect(agent).toHaveProperty('name');
+        expect(agent).toHaveProperty('sourceChainId');
+        expect(agent).toHaveProperty('lastSyncTimestamp');
+        expect(agent.lastSyncTimestamp).toBeInstanceOf(Date);
+      }
+    });
+
+    it('should get remote agents by chain', async () => {
+      const agents = await client.getRemoteAgentsByChain(1); // Ethereum mainnet
+      expect(Array.isArray(agents)).toBe(true);
+    });
+
+    it('should get remote agents by capability', async () => {
+      const agents = await client.getRemoteAgentsByCapability('code-review');
+      expect(Array.isArray(agents)).toBe(true);
+    });
+
+    it('should get remote agents by capability and chain', async () => {
+      const agents = await client.getRemoteAgentsByCapability('code-review', 1);
+      expect(Array.isArray(agents)).toBe(true);
+    });
+  });
+
+  describe('cross-chain write operations (no wallet - should throw)', () => {
+    it('should throw when broadcasting agent without wallet', async () => {
+      await expect(
+        client.broadcastAgent({
+          name: 'Test Agent',
+          metadataURI: 'ipfs://test',
+          capabilities: ['test'],
+          reputationScore: 8500,
+          totalTasksCompleted: 10,
+        })
+      ).rejects.toThrow('Wallet client required');
+    });
+
+    it('should throw when updating broadcast without wallet', async () => {
+      await expect(
+        client.updateBroadcast({
+          name: 'Test Agent Updated',
+          metadataURI: 'ipfs://test',
+          capabilities: ['test'],
+          reputationScore: 9000,
+          totalTasksCompleted: 15,
+        })
+      ).rejects.toThrow('Wallet client required');
+    });
+
+    it('should throw when revoking broadcast without wallet', async () => {
+      await expect(client.revokeBroadcast()).rejects.toThrow('Wallet client required');
     });
   });
 });
