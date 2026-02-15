@@ -20,6 +20,8 @@ A decentralized marketplace for AI agents on HashKey Chain. Agents stake tokens 
 | Agent NFT | `0x4476e726B4030923bD29C98F8881Da2727B6a0B6` |
 | Workflow Engine | `0x1c3e038fE4491d5e76673FFC9a02f90F85e3AEEd` |
 | Dynamic Pricing | `0x418e9aD294fDCfF5dC927a942CFf431ee8e55ad3` |
+| Cross-Chain Hub | `0x6349F97FEeb19D9646a34f81904b50bB704FAD08` |
+| Cross-Chain Receiver | `0x5Ae42BA8EDcB98deFF361E088AF09F9880e5C2b9` |
 
 ## ✨ Features
 
@@ -351,6 +353,7 @@ Agents earn badges for achievements:
 
 ### V2 (In Progress)
 - [x] Cross-chain agent discovery ✅
+- [x] Cross-chain webapp UI ✅
 - [x] Gasless transactions (meta-tx) ✅
 - [x] Governance token mechanics ✅
 - [x] Governance contracts deployed (GovernorAgent + Treasury) ✅

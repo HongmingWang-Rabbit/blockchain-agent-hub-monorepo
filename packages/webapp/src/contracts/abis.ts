@@ -562,3 +562,142 @@ export const STANDARD_CAPABILITIES = [
   'debugging',
   'documentation',
 ] as const;
+
+// CrossChainHub ABI
+export const crossChainHubAbi = [
+  {
+    name: 'getBroadcastedAgents',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'tuple[]',
+        components: [
+          { name: 'owner', type: 'address' },
+          { name: 'name', type: 'string' },
+          { name: 'metadataURI', type: 'string' },
+          { name: 'capabilities', type: 'string[]' },
+          { name: 'reputationScore', type: 'uint256' },
+          { name: 'totalTasksCompleted', type: 'uint256' },
+          { name: 'broadcastTimestamp', type: 'uint256' },
+          { name: 'isActive', type: 'bool' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'getSupportedChains',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'tuple[]',
+        components: [
+          { name: 'chainId', type: 'uint256' },
+          { name: 'name', type: 'string' },
+          { name: 'receiverContract', type: 'address' },
+          { name: 'isActive', type: 'bool' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'getBroadcastedAgentCount',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'isBroadcasted',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'agent', type: 'address' }],
+    outputs: [{ type: 'bool' }],
+  },
+  {
+    name: 'broadcastFee',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'minReputationToBroadcast',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'uint256' }],
+  },
+  {
+    name: 'getAgentCapabilities',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'agent', type: 'address' }],
+    outputs: [{ type: 'string[]' }],
+  },
+  {
+    name: 'broadcastedAgents',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '', type: 'address' }],
+    outputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'name', type: 'string' },
+      { name: 'metadataURI', type: 'string' },
+      { name: 'reputationScore', type: 'uint256' },
+      { name: 'totalTasksCompleted', type: 'uint256' },
+      { name: 'broadcastTimestamp', type: 'uint256' },
+      { name: 'isActive', type: 'bool' },
+    ],
+  },
+  {
+    name: 'broadcastAgent',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'metadataURI', type: 'string' },
+      { name: 'capabilities', type: 'string[]' },
+      { name: 'reputationScore', type: 'uint256' },
+      { name: 'totalTasksCompleted', type: 'uint256' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'updateBroadcast',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'metadataURI', type: 'string' },
+      { name: 'capabilities', type: 'string[]' },
+      { name: 'reputationScore', type: 'uint256' },
+      { name: 'totalTasksCompleted', type: 'uint256' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'revokeBroadcast',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [],
+    outputs: [],
+  },
+  {
+    name: 'AgentBroadcast',
+    type: 'event',
+    inputs: [
+      { name: 'agentOwner', type: 'address', indexed: true },
+      { name: 'toChainId', type: 'uint256', indexed: true },
+      { name: 'name', type: 'string', indexed: false },
+      { name: 'metadataURI', type: 'string', indexed: false },
+      { name: 'capabilities', type: 'string[]', indexed: false },
+      { name: 'reputationScore', type: 'uint256', indexed: false },
+      { name: 'totalTasksCompleted', type: 'uint256', indexed: false },
+      { name: 'timestamp', type: 'uint256', indexed: false },
+    ],
+  },
+] as const;

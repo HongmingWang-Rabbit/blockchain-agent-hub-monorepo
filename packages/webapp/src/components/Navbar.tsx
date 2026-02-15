@@ -9,6 +9,7 @@ const navItems = [
   { href: '/agents', label: 'Agents' },
   { href: '/tasks', label: 'Tasks' },
   { href: '/workflows', label: 'Workflows' },
+  { href: '/cross-chain', label: 'Cross-Chain' },
   { href: '/governance', label: 'Governance' },
   { href: '/dashboard', label: 'Dashboard' },
 ];
