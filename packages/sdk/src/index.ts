@@ -62,6 +62,11 @@ export type {
   AddStepParams,
   PricingInfo,
   PriceRange,
+  // Governance types
+  Proposal,
+  TreasuryStatus,
+  CreateProposalParams,
+  VoteParams,
 } from './types';
 
 // Network configs

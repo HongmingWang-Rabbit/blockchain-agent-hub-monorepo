@@ -7,6 +7,8 @@ import {
   WorkflowStatus,
   StepStatus,
   StepType,
+  ProposalState,
+  SpendingCategory,
 } from './index';
 
 describe('AgentHubClient', () => {
@@ -257,6 +259,142 @@ describe('AgentHubClient', () => {
           budget: parseEther('100'),
           deadline: new Date(Date.now() + 86400000),
         })
+      ).rejects.toThrow('Wallet client required');
+    });
+  });
+
+  describe('governance operations (live testnet)', () => {
+    it('should have governance contracts configured', () => {
+      expect(client.hasGovernor()).toBe(true);
+      expect(client.hasTreasury()).toBe(true);
+    });
+
+    it('should have correct governance contract addresses', () => {
+      expect(client.network.contracts.governor).toBe('0x626496716673bb5E7F2634d2eBc96ae0697713a4');
+      expect(client.network.contracts.treasury).toBe('0xdc454EfAa5eEBF4D6786750f664bCff461C68b33');
+      expect(client.network.contracts.timelock).toBe('0x0F8538a8829c1658eac0D20B11421828d2099c1C');
+    });
+
+    it('should get governor name', async () => {
+      const name = await client.getGovernorName();
+      expect(typeof name).toBe('string');
+      expect(name.length).toBeGreaterThan(0);
+    });
+
+    it('should get voting delay', async () => {
+      const delay = await client.getVotingDelay();
+      expect(typeof delay).toBe('bigint');
+    });
+
+    it('should get voting period', async () => {
+      const period = await client.getVotingPeriod();
+      expect(typeof period).toBe('bigint');
+      expect(period).toBeGreaterThan(0n);
+    });
+
+    it('should get proposal threshold', async () => {
+      const threshold = await client.getProposalThreshold();
+      expect(typeof threshold).toBe('bigint');
+    });
+  });
+
+  describe('treasury operations (live testnet)', () => {
+    it('should get treasury balance', async () => {
+      const balance = await client.getTreasuryBalance();
+      expect(typeof balance).toBe('bigint');
+    });
+
+    it('should check treasury paused status', async () => {
+      const paused = await client.isTreasuryPaused();
+      expect(typeof paused).toBe('boolean');
+    });
+
+    it('should get category limits', async () => {
+      const grantsLimit = await client.getCategoryLimit(SpendingCategory.Grants);
+      const rewardsLimit = await client.getCategoryLimit(SpendingCategory.Rewards);
+      
+      expect(typeof grantsLimit).toBe('bigint');
+      expect(typeof rewardsLimit).toBe('bigint');
+    });
+
+    it('should get remaining budget for categories', async () => {
+      const remaining = await client.getRemainingBudget(SpendingCategory.Operations);
+      expect(typeof remaining).toBe('bigint');
+    });
+
+    it('should get period duration', async () => {
+      const duration = await client.getPeriodDuration();
+      expect(typeof duration).toBe('number');
+      expect(duration).toBeGreaterThan(0);
+    });
+
+    it('should get time until period reset', async () => {
+      const timeUntil = await client.getTimeUntilPeriodReset();
+      expect(typeof timeUntil).toBe('number');
+    });
+
+    it('should get full treasury status', async () => {
+      const status = await client.getTreasuryStatus();
+      
+      expect(status).toHaveProperty('balance');
+      expect(status).toHaveProperty('paused');
+      expect(status).toHaveProperty('periodStart');
+      expect(status).toHaveProperty('periodDuration');
+      expect(status).toHaveProperty('timeUntilReset');
+      expect(status).toHaveProperty('categoryBudgets');
+      
+      expect(typeof status.balance).toBe('bigint');
+      expect(typeof status.paused).toBe('boolean');
+      expect(status.periodStart).toBeInstanceOf(Date);
+      expect(Array.isArray(status.categoryBudgets)).toBe(true);
+      expect(status.categoryBudgets.length).toBe(5); // 5 categories
+      
+      // Check category budget structure
+      status.categoryBudgets.forEach(cb => {
+        expect(cb).toHaveProperty('category');
+        expect(cb).toHaveProperty('limit');
+        expect(cb).toHaveProperty('spent');
+        expect(cb).toHaveProperty('remaining');
+      });
+    });
+  });
+
+  describe('delegation operations (live testnet)', () => {
+    it('should get current delegate for zero address', async () => {
+      const delegate = await client.getDelegate('0x0000000000000000000000000000000000000001');
+      expect(typeof delegate).toBe('string');
+    });
+
+    it('should get current votes for zero address', async () => {
+      const votes = await client.getCurrentVotes('0x0000000000000000000000000000000000000001');
+      expect(typeof votes).toBe('bigint');
+    });
+  });
+
+  describe('governance write operations (no wallet - should throw)', () => {
+    it('should throw when creating proposal without wallet', async () => {
+      await expect(
+        client.propose({
+          targets: ['0x0000000000000000000000000000000000000001'],
+          values: [0n],
+          calldatas: ['0x'],
+          description: 'Test Proposal',
+        })
+      ).rejects.toThrow('Wallet client required');
+    });
+
+    it('should throw when casting vote without wallet', async () => {
+      await expect(
+        client.castVote({
+          proposalId: 1n,
+          support: 1,
+        })
+      ).rejects.toThrow('Wallet client required');
+    });
+
+    it('should throw when delegating without wallet', async () => {
+      await expect(
+        client.delegateVotes('0x0000000000000000000000000000000000000001')
       ).rejects.toThrow('Wallet client required');
     });
   });

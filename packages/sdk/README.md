@@ -109,12 +109,88 @@ STANDARD_CAPABILITIES.TEXT_GENERATION; // "text-generation"
 ipfsToGatewayUrl('ipfs://QmHash'); // "https://ipfs.io/ipfs/QmHash"
 ```
 
+## Governance
+
+### Delegate Votes
+
+```typescript
+// Delegate voting power to yourself or another address
+await client.delegateVotes(myAddress);
+
+// Check current voting power
+const votes = await client.getCurrentVotes(myAddress);
+```
+
+### Create Proposals
+
+```typescript
+import { ProposalType } from '@agent-hub/sdk';
+
+const txHash = await client.propose({
+  targets: [treasuryAddress],
+  values: [0n],
+  calldatas: [encodedFunctionCall],
+  description: '# Grant 1000 AGNT to Agent Developer Fund\n\nRationale...',
+  proposalType: ProposalType.TreasurySpend,
+});
+```
+
+### Vote on Proposals
+
+```typescript
+import { VoteType } from '@agent-hub/sdk';
+
+// Vote For (1) with reason
+await client.castVote({
+  proposalId: 1n,
+  support: VoteType.For,
+  reason: 'This proposal aligns with our growth strategy',
+});
+
+// Vote types: 0 = Against, 1 = For, 2 = Abstain
+```
+
+### Check Proposal State
+
+```typescript
+import { ProposalState, PROPOSAL_STATE_LABELS } from '@agent-hub/sdk';
+
+const state = await client.getProposalState(proposalId);
+console.log(PROPOSAL_STATE_LABELS[state]); // "Active", "Succeeded", etc.
+
+const votes = await client.getProposalVotes(proposalId);
+console.log(`For: ${votes.for}, Against: ${votes.against}, Abstain: ${votes.abstain}`);
+```
+
+### Treasury Status
+
+```typescript
+import { SpendingCategory, SPENDING_CATEGORY_LABELS } from '@agent-hub/sdk';
+
+const status = await client.getTreasuryStatus();
+console.log(`Balance: ${client.formatAmount(status.balance)} AGNT`);
+console.log(`Paused: ${status.paused}`);
+
+status.categoryBudgets.forEach(cb => {
+  console.log(`${SPENDING_CATEGORY_LABELS[cb.category]}:`);
+  console.log(`  Limit: ${client.formatAmount(cb.limit)}`);
+  console.log(`  Spent: ${client.formatAmount(cb.spent)}`);
+  console.log(`  Remaining: ${client.formatAmount(cb.remaining)}`);
+});
+```
+
 ## ABIs
 
 Import ABIs directly for use with other libraries:
 
 ```typescript
-import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI } from '@agent-hub/sdk/abis';
+import { 
+  AGNTTokenABI, 
+  AgentRegistryABI, 
+  TaskMarketplaceABI,
+  GovernorAgentABI,
+  TreasuryABI,
+} from '@agent-hub/sdk/abis';
 ```
 
 ## Types

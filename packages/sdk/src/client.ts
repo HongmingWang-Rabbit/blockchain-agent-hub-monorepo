@@ -13,7 +13,17 @@ import {
   formatEther,
 } from 'viem';
 
-import { AGNTTokenABI, AgentRegistryABI, TaskMarketplaceABI, AgentNFTABI, WorkflowEngineABI, DynamicPricingABI } from './abis';
+import { 
+  AGNTTokenABI, 
+  AgentRegistryABI, 
+  TaskMarketplaceABI, 
+  AgentNFTABI, 
+  WorkflowEngineABI, 
+  DynamicPricingABI,
+  GovernorAgentABI,
+  TreasuryABI,
+  SpendingCategory,
+} from './abis';
 import type {
   NetworkConfig,
   Agent,
@@ -28,6 +38,10 @@ import type {
   AddStepParams,
   PricingInfo,
   PriceRange,
+  Proposal,
+  TreasuryStatus,
+  CreateProposalParams,
+  VoteParams,
 } from './types';
 import { TaskStatus, WorkflowStatus, StepStatus, StepType } from './types';
 
@@ -54,6 +68,8 @@ export class AgentHubClient {
   private readonly agentNFT;
   private readonly workflowEngine;
   private readonly dynamicPricing;
+  private readonly governor;
+  private readonly treasury;
 
   constructor(config: AgentHubClientConfig) {
     this.network = config.network;
@@ -124,6 +140,24 @@ export class AgentHubClient {
       this.dynamicPricing = getContract({
         address: config.network.contracts.dynamicPricing,
         abi: DynamicPricingABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize Governor if address provided
+    if (config.network.contracts.governor) {
+      this.governor = getContract({
+        address: config.network.contracts.governor,
+        abi: GovernorAgentABI,
+        client: this.publicClient,
+      });
+    }
+
+    // Initialize Treasury if address provided
+    if (config.network.contracts.treasury) {
+      this.treasury = getContract({
+        address: config.network.contracts.treasury,
+        abi: TreasuryABI,
         client: this.publicClient,
       });
     }
@@ -872,5 +906,403 @@ export class AgentHubClient {
   async getBasePrice(capability: string): Promise<bigint> {
     if (!this.dynamicPricing) throw new Error('DynamicPricing contract not configured');
     return this.dynamicPricing.read.basePrices([capability]) as Promise<bigint>;
+  }
+
+  // ========== Governance Operations ==========
+
+  /**
+   * Check if Governor is available
+   */
+  hasGovernor(): boolean {
+    return !!this.governor;
+  }
+
+  /**
+   * Check if Treasury is available
+   */
+  hasTreasury(): boolean {
+    return !!this.treasury;
+  }
+
+  /**
+   * Get governor name
+   */
+  async getGovernorName(): Promise<string> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.name() as Promise<string>;
+  }
+
+  /**
+   * Get voting delay (in blocks)
+   */
+  async getVotingDelay(): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.votingDelay() as Promise<bigint>;
+  }
+
+  /**
+   * Get voting period (in blocks)
+   */
+  async getVotingPeriod(): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.votingPeriod() as Promise<bigint>;
+  }
+
+  /**
+   * Get proposal threshold (minimum tokens to propose)
+   */
+  async getProposalThreshold(): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.proposalThreshold() as Promise<bigint>;
+  }
+
+  /**
+   * Get quorum at a specific block number
+   */
+  async getQuorum(blockNumber: bigint): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.quorum([blockNumber]) as Promise<bigint>;
+  }
+
+  /**
+   * Get proposal state
+   */
+  async getProposalState(proposalId: bigint): Promise<number> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.state([proposalId]) as Promise<number>;
+  }
+
+  /**
+   * Get proposal votes
+   */
+  async getProposalVotes(proposalId: bigint): Promise<{ against: bigint; for: bigint; abstain: bigint }> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    const result = await this.governor.read.proposalVotes([proposalId]);
+    return {
+      against: result[0] as bigint,
+      for: result[1] as bigint,
+      abstain: result[2] as bigint,
+    };
+  }
+
+  /**
+   * Get proposal snapshot (block when voting started)
+   */
+  async getProposalSnapshot(proposalId: bigint): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.proposalSnapshot([proposalId]) as Promise<bigint>;
+  }
+
+  /**
+   * Get proposal deadline (block when voting ends)
+   */
+  async getProposalDeadline(proposalId: bigint): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.proposalDeadline([proposalId]) as Promise<bigint>;
+  }
+
+  /**
+   * Get proposal type
+   */
+  async getProposalType(proposalId: bigint): Promise<number> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.proposalTypes([proposalId]) as Promise<number>;
+  }
+
+  /**
+   * Get proposal proposer
+   */
+  async getProposalProposer(proposalId: bigint): Promise<Address> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.proposalProposer([proposalId]) as Promise<Address>;
+  }
+
+  /**
+   * Check if account has voted on proposal
+   */
+  async hasVoted(proposalId: bigint, account: Address): Promise<boolean> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.hasVoted([proposalId, account]) as Promise<boolean>;
+  }
+
+  /**
+   * Get voting power at a specific timepoint
+   */
+  async getVotes(account: Address, timepoint: bigint): Promise<bigint> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    return this.governor.read.getVotes([account, timepoint]) as Promise<bigint>;
+  }
+
+  /**
+   * Create a proposal
+   */
+  async propose(params: CreateProposalParams): Promise<Hex> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    
+    if (params.proposalType !== undefined) {
+      return this.walletClient!.writeContract({
+        address: this.network.contracts.governor!,
+        abi: GovernorAgentABI,
+        functionName: 'proposeTyped',
+        args: [params.targets, params.values, params.calldatas, params.description, params.proposalType],
+        ...this.getWriteParams(),
+      });
+    }
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.governor!,
+      abi: GovernorAgentABI,
+      functionName: 'propose',
+      args: [params.targets, params.values, params.calldatas, params.description],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Cast a vote on a proposal
+   */
+  async castVote(params: VoteParams): Promise<Hex> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    
+    if (params.reason) {
+      return this.walletClient!.writeContract({
+        address: this.network.contracts.governor!,
+        abi: GovernorAgentABI,
+        functionName: 'castVoteWithReason',
+        args: [params.proposalId, params.support, params.reason],
+        ...this.getWriteParams(),
+      });
+    }
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.governor!,
+      abi: GovernorAgentABI,
+      functionName: 'castVote',
+      args: [params.proposalId, params.support],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Queue a successful proposal
+   */
+  async queueProposal(
+    targets: Address[],
+    values: bigint[],
+    calldatas: Hex[],
+    descriptionHash: Hex
+  ): Promise<Hex> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.governor!,
+      abi: GovernorAgentABI,
+      functionName: 'queue',
+      args: [targets, values, calldatas, descriptionHash],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Execute a queued proposal
+   */
+  async executeProposal(
+    targets: Address[],
+    values: bigint[],
+    calldatas: Hex[],
+    descriptionHash: Hex
+  ): Promise<Hex> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.governor!,
+      abi: GovernorAgentABI,
+      functionName: 'execute',
+      args: [targets, values, calldatas, descriptionHash],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Cancel a proposal
+   */
+  async cancelProposal(
+    targets: Address[],
+    values: bigint[],
+    calldatas: Hex[],
+    descriptionHash: Hex
+  ): Promise<Hex> {
+    if (!this.governor) throw new Error('Governor contract not configured');
+    
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.governor!,
+      abi: GovernorAgentABI,
+      functionName: 'cancel',
+      args: [targets, values, calldatas, descriptionHash],
+      ...this.getWriteParams(),
+    });
+  }
+
+  // ========== Treasury Operations ==========
+
+  /**
+   * Get treasury balance
+   */
+  async getTreasuryBalance(): Promise<bigint> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    return this.treasury.read.balance() as Promise<bigint>;
+  }
+
+  /**
+   * Check if treasury is paused
+   */
+  async isTreasuryPaused(): Promise<boolean> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    return this.treasury.read.paused() as Promise<boolean>;
+  }
+
+  /**
+   * Get category spending limit
+   */
+  async getCategoryLimit(category: SpendingCategory): Promise<bigint> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    return this.treasury.read.categoryLimits([category]) as Promise<bigint>;
+  }
+
+  /**
+   * Get category spent amount this period
+   */
+  async getCategorySpent(category: SpendingCategory): Promise<bigint> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    return this.treasury.read.categorySpent([category]) as Promise<bigint>;
+  }
+
+  /**
+   * Get remaining budget for a category
+   */
+  async getRemainingBudget(category: SpendingCategory): Promise<bigint> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    return this.treasury.read.remainingBudget([category]) as Promise<bigint>;
+  }
+
+  /**
+   * Get time until period reset (seconds)
+   */
+  async getTimeUntilPeriodReset(): Promise<number> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    const time = await this.treasury.read.timeUntilPeriodReset();
+    return Number(time);
+  }
+
+  /**
+   * Get period start timestamp
+   */
+  async getPeriodStart(): Promise<Date> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    const timestamp = await this.treasury.read.periodStart();
+    return new Date(Number(timestamp) * 1000);
+  }
+
+  /**
+   * Get period duration (seconds)
+   */
+  async getPeriodDuration(): Promise<number> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    const duration = await this.treasury.read.periodDuration();
+    return Number(duration);
+  }
+
+  /**
+   * Get full treasury status
+   */
+  async getTreasuryStatus(): Promise<TreasuryStatus> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    
+    const [balance, paused, periodStart, periodDuration, timeUntilReset] = await Promise.all([
+      this.getTreasuryBalance(),
+      this.isTreasuryPaused(),
+      this.getPeriodStart(),
+      this.getPeriodDuration(),
+      this.getTimeUntilPeriodReset(),
+    ]);
+
+    // Get all category budgets
+    const categories = [
+      SpendingCategory.Grants,
+      SpendingCategory.Rewards,
+      SpendingCategory.Operations,
+      SpendingCategory.Liquidity,
+      SpendingCategory.Emergency,
+    ];
+
+    const categoryBudgets = await Promise.all(
+      categories.map(async (category) => {
+        const [limit, spent, remaining] = await Promise.all([
+          this.getCategoryLimit(category),
+          this.getCategorySpent(category),
+          this.getRemainingBudget(category),
+        ]);
+        return { category, limit, spent, remaining };
+      })
+    );
+
+    return {
+      balance,
+      paused,
+      periodStart,
+      periodDuration,
+      timeUntilReset,
+      categoryBudgets,
+    };
+  }
+
+  /**
+   * Deposit tokens to treasury
+   */
+  async depositToTreasury(amount: bigint): Promise<Hex> {
+    if (!this.treasury) throw new Error('Treasury contract not configured');
+    
+    // First approve tokens
+    const approveTx = await this.approveTokens(
+      this.network.contracts.treasury!,
+      amount
+    );
+    await this.publicClient.waitForTransactionReceipt({ hash: approveTx });
+
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.treasury!,
+      abi: TreasuryABI,
+      functionName: 'deposit',
+      args: [amount],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Delegate AGNT voting power
+   */
+  async delegateVotes(delegatee: Address): Promise<Hex> {
+    this.requireWallet();
+    return this.walletClient!.writeContract({
+      address: this.network.contracts.agntToken,
+      abi: AGNTTokenABI,
+      functionName: 'delegate',
+      args: [delegatee],
+      ...this.getWriteParams(),
+    });
+  }
+
+  /**
+   * Get current delegate for an account
+   */
+  async getDelegate(account: Address): Promise<Address> {
+    return this.agntToken.read.delegates([account]) as Promise<Address>;
+  }
+
+  /**
+   * Get current voting power (checkpointed)
+   */
+  async getCurrentVotes(account: Address): Promise<bigint> {
+    return this.agntToken.read.getVotes([account]) as Promise<bigint>;
   }
 }

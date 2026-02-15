@@ -17,6 +17,10 @@ export interface NetworkConfig {
     agentNFT?: Address;
     workflowEngine?: Address;
     dynamicPricing?: Address;
+    forwarder?: Address;
+    governor?: Address;
+    treasury?: Address;
+    timelock?: Address;
   };
 }
 
@@ -69,6 +73,10 @@ export const HASHKEY_TESTNET: NetworkConfig = {
     agentNFT: '0x4476e726B4030923bD29C98F8881Da2727B6a0B6' as Address,
     workflowEngine: '0x1c3e038fE4491d5e76673FFC9a02f90F85e3AEEd' as Address,
     dynamicPricing: '0x418e9aD294fDCfF5dC927a942CFf431ee8e55ad3' as Address,
+    forwarder: '0xDf0a2B3afCf6C0Cbe55D66c94A2da04f696dB7A0' as Address,
+    governor: '0x626496716673bb5E7F2634d2eBc96ae0697713a4' as Address,
+    treasury: '0xdc454EfAa5eEBF4D6786750f664bCff461C68b33' as Address,
+    timelock: '0x0F8538a8829c1658eac0D20B11421828d2099c1C' as Address,
   },
 };
 
@@ -273,4 +281,64 @@ export interface PriceRange {
   minPrice: bigint;
   maxPrice: bigint;
   currentPrice: bigint;
+}
+
+// ========== Governance Types ==========
+
+/**
+ * Proposal data structure
+ */
+export interface Proposal {
+  id: bigint;
+  proposer: Address;
+  state: number; // ProposalState enum
+  proposalType: number; // ProposalType enum
+  targets: Address[];
+  values: bigint[];
+  calldatas: Hex[];
+  description: string;
+  voteStart: bigint;
+  voteEnd: bigint;
+  votes: {
+    against: bigint;
+    for: bigint;
+    abstain: bigint;
+  };
+}
+
+/**
+ * Treasury status
+ */
+export interface TreasuryStatus {
+  balance: bigint;
+  paused: boolean;
+  periodStart: Date;
+  periodDuration: number; // seconds
+  timeUntilReset: number; // seconds
+  categoryBudgets: {
+    category: number;
+    limit: bigint;
+    spent: bigint;
+    remaining: bigint;
+  }[];
+}
+
+/**
+ * Create proposal parameters
+ */
+export interface CreateProposalParams {
+  targets: Address[];
+  values: bigint[];
+  calldatas: Hex[];
+  description: string;
+  proposalType?: number;
+}
+
+/**
+ * Vote parameters
+ */
+export interface VoteParams {
+  proposalId: bigint;
+  support: number; // 0 = Against, 1 = For, 2 = Abstain
+  reason?: string;
 }
