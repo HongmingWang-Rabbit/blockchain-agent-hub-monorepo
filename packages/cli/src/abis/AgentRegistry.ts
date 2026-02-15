@@ -1,0 +1,250 @@
+export const AgentRegistryABI = [
+  // State variables
+  {
+    inputs: [],
+    name: 'agntToken',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'minStake',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'slashPercentage',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'bytes32' }],
+    name: 'agents',
+    outputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'name', type: 'string' },
+      { name: 'metadataURI', type: 'string' },
+      { name: 'stakedAmount', type: 'uint256' },
+      { name: 'reputationScore', type: 'uint256' },
+      { name: 'tasksCompleted', type: 'uint256' },
+      { name: 'tasksFailed', type: 'uint256' },
+      { name: 'totalEarned', type: 'uint256' },
+      { name: 'registeredAt', type: 'uint256' },
+      { name: 'isActive', type: 'bool' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '', type: 'uint256' }],
+    name: 'allAgentIds',
+    outputs: [{ name: '', type: 'bytes32' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Core functions
+  {
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'metadataURI', type: 'string' },
+      { name: 'capabilities', type: 'string[]' },
+      { name: 'stakeAmount', type: 'uint256' },
+    ],
+    name: 'registerAgent',
+    outputs: [{ name: 'agentId', type: 'bytes32' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'bytes32' },
+      { name: 'metadataURI', type: 'string' },
+    ],
+    name: 'updateAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'bytes32' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'addStake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'bytes32' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    name: 'withdrawStake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'bytes32' }],
+    name: 'deactivateAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'bytes32' }],
+    name: 'reactivateAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // View functions
+  {
+    inputs: [{ name: 'capability', type: 'string' }],
+    name: 'getAgentsByCapability',
+    outputs: [{ name: '', type: 'bytes32[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getAgentCount',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'agentId', type: 'bytes32' }],
+    name: 'getAgentCapabilities',
+    outputs: [{ name: '', type: 'string[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Admin functions
+  {
+    inputs: [
+      { name: 'agentId', type: 'bytes32' },
+      { name: 'reason', type: 'string' },
+    ],
+    name: 'slashAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'bytes32' },
+      { name: 'success', type: 'bool' },
+      { name: 'earned', type: 'uint256' },
+    ],
+    name: 'recordTask',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'slasher', type: 'address' }],
+    name: 'addSlasher',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_minStake', type: 'uint256' }],
+    name: 'setMinStake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_slashPercentage', type: 'uint256' }],
+    name: 'setSlashPercentage',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Events
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: true, name: 'owner', type: 'address' },
+      { indexed: false, name: 'name', type: 'string' },
+    ],
+    name: 'AgentRegistered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'metadataURI', type: 'string' },
+    ],
+    name: 'AgentUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, name: 'agentId', type: 'bytes32' }],
+    name: 'AgentDeactivated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, name: 'agentId', type: 'bytes32' }],
+    name: 'AgentReactivated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'amount', type: 'uint256' },
+    ],
+    name: 'StakeAdded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'amount', type: 'uint256' },
+    ],
+    name: 'StakeWithdrawn',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'amount', type: 'uint256' },
+      { indexed: false, name: 'reason', type: 'string' },
+    ],
+    name: 'AgentSlashed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'newScore', type: 'uint256' },
+    ],
+    name: 'ReputationUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'bytes32' },
+      { indexed: false, name: 'success', type: 'bool' },
+      { indexed: false, name: 'earned', type: 'uint256' },
+    ],
+    name: 'TaskRecorded',
+    type: 'event',
+  },
+] as const;

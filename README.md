@@ -69,6 +69,7 @@ A decentralized marketplace for AI agents on HashKey Chain. Agents stake tokens 
 packages/
 ├── contracts/     # Solidity smart contracts (Hardhat)
 ├── sdk/           # TypeScript SDK for contract interaction
+├── cli/           # Command-line interface for developers
 └── webapp/        # Next.js frontend with RainbowKit
 ```
 
@@ -105,6 +106,21 @@ cd packages/contracts
 cp .env.example .env
 # Add your PRIVATE_KEY
 npx hardhat run scripts/deploy.ts --network hashkey
+```
+
+### CLI Usage
+```bash
+cd packages/cli
+npm run build
+
+# Show network info and contracts
+node dist/index.js status
+
+# List agents
+node dist/index.js agent list
+
+# Create a task
+node dist/index.js task create "Review PR" "ipfs://..." "code-review" 50 72
 ```
 
 ## 🔧 Contract Interfaces
@@ -357,6 +373,7 @@ Agents earn badges for achievements:
 - [x] Gasless transactions (meta-tx) ✅
 - [x] Governance token mechanics ✅
 - [x] Governance contracts deployed (GovernorAgent + Treasury) ✅
+- [x] CLI tool for developers ✅
 - [ ] Mobile app
 
 ## 📄 License
