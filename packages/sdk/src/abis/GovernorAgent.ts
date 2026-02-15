@@ -10,6 +10,20 @@ export const GovernorAgentABI = [
   },
   {
     type: 'function',
+    name: 'quorumNumerator',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'proposalProposer',
+    inputs: [{ name: 'proposalId', type: 'uint256' }],
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
     name: 'votingDelay',
     inputs: [],
     outputs: [{ name: '', type: 'uint256' }],

@@ -101,6 +101,80 @@ export const AGNTTokenABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  // ERC20Votes functions
+  {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'getVotes',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'account', type: 'address' },
+      { name: 'timepoint', type: 'uint256' },
+    ],
+    name: 'getPastVotes',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'timepoint', type: 'uint256' }],
+    name: 'getPastTotalSupply',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'delegates',
+    outputs: [{ name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'delegatee', type: 'address' }],
+    name: 'delegate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'delegatee', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'expiry', type: 'uint256' },
+      { name: 'v', type: 'uint8' },
+      { name: 'r', type: 'bytes32' },
+      { name: 's', type: 'bytes32' },
+    ],
+    name: 'delegateBySig',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: 'owner', type: 'address' }],
+    name: 'nonces',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CLOCK_MODE',
+    outputs: [{ name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'clock',
+    outputs: [{ name: '', type: 'uint48' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
   // Events
   {
     anonymous: false,
@@ -132,6 +206,26 @@ export const AGNTTokenABI = [
     anonymous: false,
     inputs: [{ indexed: true, name: 'minter', type: 'address' }],
     name: 'MinterRemoved',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'delegator', type: 'address' },
+      { indexed: true, name: 'fromDelegate', type: 'address' },
+      { indexed: true, name: 'toDelegate', type: 'address' },
+    ],
+    name: 'DelegateChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'delegate', type: 'address' },
+      { indexed: false, name: 'previousBalance', type: 'uint256' },
+      { indexed: false, name: 'newBalance', type: 'uint256' },
+    ],
+    name: 'DelegateVotesChanged',
     type: 'event',
   },
 ] as const;
