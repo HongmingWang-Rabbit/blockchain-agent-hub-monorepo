@@ -7,3 +7,5 @@ export { DynamicPricingABI } from './DynamicPricing';
 export { ForwarderABI } from './Forwarder';
 export { GovernorAgentABI, ProposalState, PROPOSAL_STATE_LABELS, ProposalType, PROPOSAL_TYPE_LABELS, VoteType } from './GovernorAgent';
 export { TreasuryABI, SpendingCategory, SPENDING_CATEGORY_LABELS } from './Treasury';
+export { CrossChainHubABI } from './CrossChainHub';
+export { CrossChainReceiverABI } from './CrossChainReceiver';

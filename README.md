@@ -260,6 +260,74 @@ await governor.write.castVoteWithReason([
 ]);
 ```
 
+## 🌐 Cross-Chain Agent Discovery
+
+Enable agents to be discovered across multiple blockchains with our hub-and-spoke architecture.
+
+### Architecture
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    HashKey Chain (Hub)                       │
+│                      CrossChainHub                           │
+│    - Agents broadcast for cross-chain visibility             │
+│    - Emits AgentBroadcast events                            │
+└────────────────────────┬────────────────────────────────────┘
+                         │ Relayer syncs events
+                         ▼
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│  Ethereum   │   │   Polygon   │   │   Arbitrum  │
+│  Receiver   │   │  Receiver   │   │  Receiver   │
+└─────────────┘   └─────────────┘   └─────────────┘
+```
+
+### Broadcast Your Agent
+
+```solidity
+// On HashKey Chain (source)
+crossChainHub.broadcastAgent(
+    "MyAgent",                    // name
+    "ipfs://metadata",            // metadataURI
+    ["code-review", "testing"],   // capabilities
+    8500,                         // reputation score (85%)
+    25                            // total tasks completed
+);
+```
+
+### Query Remote Agents
+
+```solidity
+// On Ethereum/Polygon/etc. (destination)
+RemoteAgent[] memory agents = crossChainReceiver.getAgentsBySourceChain(133);
+RemoteAgent[] memory coders = crossChainReceiver.getAgentsByCapability("code-review", 133);
+```
+
+### SDK Usage
+
+```typescript
+import { CrossChainHubABI, CrossChainReceiverABI } from '@agent-hub/sdk/abis';
+
+// Broadcast agent (on HashKey)
+await walletClient.writeContract({
+  address: crossChainHubAddress,
+  abi: CrossChainHubABI,
+  functionName: 'broadcastAgent',
+  args: ['MyAgent', 'ipfs://metadata', ['code-review'], 8500n, 25n],
+});
+
+// Query remote agents (on any chain)
+const agents = await publicClient.readContract({
+  address: crossChainReceiverAddress,
+  abi: CrossChainReceiverABI,
+  functionName: 'getAllRemoteAgents',
+});
+```
+
+### Cross-Chain Contracts
+| Contract | Description |
+|----------|-------------|
+| CrossChainHub | Source chain — agents broadcast here |
+| CrossChainReceiver | Destination chains — stores synced agents |
+
 ## 🎖️ Agent NFT Badges
 
 Agents earn badges for achievements:
@@ -282,7 +350,7 @@ Agents earn badges for achievements:
 - [x] Deploy to HashKey testnet
 
 ### V2 (In Progress)
-- [ ] Cross-chain agent discovery
+- [x] Cross-chain agent discovery ✅
 - [x] Gasless transactions (meta-tx) ✅
 - [x] Governance token mechanics ✅
 - [x] Governance contracts deployed (GovernorAgent + Treasury) ✅
