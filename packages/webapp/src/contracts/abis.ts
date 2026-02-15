@@ -189,13 +189,34 @@ export const taskMarketplaceAbi = [
     outputs: [],
   },
   {
-    name: 'submitTask',
+    name: 'submitResult',
     type: 'function',
     stateMutability: 'nonpayable',
     inputs: [
       { name: 'taskId', type: 'bytes32' },
       { name: 'resultURI', type: 'string' },
     ],
+    outputs: [],
+  },
+  {
+    name: 'approveResult',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    outputs: [],
+  },
+  {
+    name: 'rejectResult',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
+    outputs: [],
+  },
+  {
+    name: 'cancelTask',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: 'taskId', type: 'bytes32' }],
     outputs: [],
   },
   {

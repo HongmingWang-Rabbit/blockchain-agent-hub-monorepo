@@ -233,7 +233,7 @@ export default function TasksPage() {
       {!isLoading && (
         <div className="space-y-4">
           {filteredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onRefresh={refetch} />
           ))}
         </div>
       )}
@@ -273,8 +273,8 @@ export default function TasksPage() {
 
       <CreateTaskModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
           refetch();
         }}
       />
