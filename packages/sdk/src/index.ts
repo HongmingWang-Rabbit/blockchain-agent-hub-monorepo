@@ -1,6 +1,31 @@
 // Main client
 export { AgentHubClient, type AgentHubClientConfig } from './client';
 
+// Event Watcher (Real-time subscriptions)
+export {
+  AgentHubEventWatcher,
+  createEventWatcher,
+  type EventSubscription,
+  type WatchEventOptions,
+  type AgentHubEvent,
+  type AgentRegisteredEvent,
+  type AgentDeactivatedEvent,
+  type AgentSlashedEvent,
+  type TaskCreatedEvent,
+  type TaskAssignedEvent,
+  type TaskCompletedEvent,
+  type TaskSubmittedEvent,
+  type TaskCancelledEvent,
+  type WorkflowCreatedEvent,
+  type WorkflowStartedEvent,
+  type WorkflowCompletedEvent,
+  type StepCompletedEvent,
+  type BadgeAwardedEvent,
+  type ProposalCreatedEvent,
+  type VoteCastEvent,
+  type AgentBroadcastEvent,
+} from './events';
+
 // ABIs
 export { 
   AGNTTokenABI, 
@@ -56,7 +81,7 @@ export type {
   TaskResultMetadata,
   CreateAgentParams,
   CreateTaskParams,
-  AgentHubEvent,
+  // AgentHubEvent is exported from events.ts
   AgentIdentity,
   Badge,
   Workflow,

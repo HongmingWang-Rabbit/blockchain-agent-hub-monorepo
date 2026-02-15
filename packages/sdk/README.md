@@ -253,6 +253,98 @@ const totalRemote = await client.getRemoteAgentCount();
 const ethCount = await client.getRemoteAgentCountByChain(1);
 ```
 
+## Real-Time Event Subscriptions
+
+Subscribe to on-chain events for real-time updates:
+
+```typescript
+import { createEventWatcher, HASHKEY_TESTNET } from '@agent-hub/sdk';
+import { createPublicClient, http } from 'viem';
+
+const publicClient = createPublicClient({
+  chain: { id: 133, name: 'HashKey Testnet', ... },
+  transport: http(HASHKEY_TESTNET.rpcUrl),
+});
+
+const watcher = createEventWatcher(publicClient, HASHKEY_TESTNET);
+
+// Watch all Agent Registry events
+const agentSub = watcher.watchAgentRegistry((event) => {
+  switch (event.type) {
+    case 'AgentRegistered':
+      console.log(`New agent: ${event.name} by ${event.owner}`);
+      break;
+    case 'AgentSlashed':
+      console.log(`Agent ${event.agentId} slashed ${event.amount} - ${event.reason}`);
+      break;
+  }
+});
+
+// Watch Task Marketplace events
+const taskSub = watcher.watchTaskMarketplace((event) => {
+  switch (event.type) {
+    case 'TaskCreated':
+      console.log(`Task created: ${event.taskId} - ${event.reward} AGNT`);
+      break;
+    case 'TaskCompleted':
+      console.log(`Task completed: ${event.taskId}`);
+      break;
+  }
+});
+
+// Watch Workflow events
+const workflowSub = watcher.watchWorkflowEngine((event) => {
+  if (event.type === 'StepCompleted') {
+    console.log(`Step ${event.stepId} completed with output: ${event.outputURI}`);
+  }
+});
+
+// Watch Governance events
+const govSub = watcher.watchGovernance((event) => {
+  if (event.type === 'ProposalCreated') {
+    console.log(`New proposal by ${event.proposer}: ${event.description}`);
+  }
+});
+
+// Watch Cross-Chain broadcasts
+const ccSub = watcher.watchCrossChainBroadcasts((event) => {
+  console.log(`Agent broadcasted: ${event.name} with ${event.capabilities.length} capabilities`);
+});
+
+// Watch ALL events (useful for activity feeds)
+const allSub = watcher.watchAll((event) => {
+  console.log(`Event: ${event.type} at block ${event.blockNumber}`);
+});
+
+// Unsubscribe when done
+agentSub.unsubscribe();
+taskSub.unsubscribe();
+
+// Or unsubscribe from everything
+watcher.unsubscribeAll();
+```
+
+### Event Types
+
+```typescript
+import type {
+  AgentRegisteredEvent,
+  AgentDeactivatedEvent,
+  AgentSlashedEvent,
+  TaskCreatedEvent,
+  TaskAssignedEvent,
+  TaskCompletedEvent,
+  TaskSubmittedEvent,
+  WorkflowCreatedEvent,
+  StepCompletedEvent,
+  BadgeAwardedEvent,
+  ProposalCreatedEvent,
+  VoteCastEvent,
+  AgentBroadcastEvent,
+  AgentHubEvent, // Union of all events
+} from '@agent-hub/sdk';
+```
+
 ## ABIs
 
 Import ABIs directly for use with other libraries:

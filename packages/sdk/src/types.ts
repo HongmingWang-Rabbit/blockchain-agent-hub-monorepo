@@ -193,20 +193,7 @@ export interface CreateTaskParams {
   requiresHumanVerification?: boolean;
 }
 
-/**
- * SDK events
- */
-export type AgentHubEvent =
-  | { type: 'AgentRegistered'; agentId: Hex; owner: Address; name: string }
-  | { type: 'AgentSlashed'; agentId: Hex; amount: bigint; reason: string }
-  | { type: 'TaskCreated'; taskId: Hex; requester: Address; reward: bigint }
-  | { type: 'TaskAssigned'; taskId: Hex; agentId: Hex }
-  | { type: 'TaskCompleted'; taskId: Hex; agentId: Hex; payout: bigint }
-  | { type: 'TaskDisputed'; taskId: Hex; reason: string }
-  | { type: 'WorkflowCreated'; workflowId: Hex; creator: Address; name: string }
-  | { type: 'WorkflowStarted'; workflowId: Hex }
-  | { type: 'WorkflowCompleted'; workflowId: Hex; totalSpent: bigint }
-  | { type: 'StepCompleted'; workflowId: Hex; stepId: Hex; outputURI: string };
+// AgentHubEvent is now defined in events.ts with full metadata
 
 // ========== Workflow Types ==========
 
