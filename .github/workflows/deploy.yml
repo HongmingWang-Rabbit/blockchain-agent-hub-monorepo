@@ -1,0 +1,117 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'testnet'
+        type: choice
+        options:
+          - testnet
+          - mainnet
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  deploy-contracts:
+    name: Deploy Contracts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: ${{ github.event.inputs.environment }}
+    defaults:
+      run:
+        working-directory: packages/contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Deploy to ${{ github.event.inputs.environment }}
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "mainnet" ]; then
+            npx hardhat run scripts/deploy.ts --network hashkey-mainnet
+          else
+            npx hardhat run scripts/deploy.ts --network hashkey
+          fi
+        env:
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+
+      - name: Verify contracts
+        run: |
+          echo "Contract verification would happen here"
+          # npx hardhat verify --network hashkey <CONTRACT_ADDRESS>
+        continue-on-error: true
+
+  deploy-sdk:
+    name: Publish SDK
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: []
+    defaults:
+      run:
+        working-directory: packages/sdk
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Build SDK
+        run: npm run build
+
+      - name: Check if version changed
+        id: version
+        run: |
+          CURRENT=$(npm view @agent-hub/sdk version 2>/dev/null || echo "0.0.0")
+          PACKAGE=$(node -p "require('./package.json').version")
+          if [ "$CURRENT" != "$PACKAGE" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed: $CURRENT -> $PACKAGE"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Version unchanged: $PACKAGE"
+          fi
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [deploy-contracts]
+    if: always() && github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Contracts:** ${{ needs.deploy-contracts.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

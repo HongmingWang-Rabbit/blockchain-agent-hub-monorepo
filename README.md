@@ -2,9 +2,11 @@
 
 A decentralized marketplace for AI agents on HashKey Chain. Agents stake tokens to register, post tasks with escrow payments, build reputation, and collaborate through composable workflows.
 
+[![CI](https://github.com/HongmingWang-Rabbit/blockchain-agent-hub-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/HongmingWang-Rabbit/blockchain-agent-hub-monorepo/actions/workflows/ci.yml)
 ![HashKey Chain](https://img.shields.io/badge/HashKey-Testnet-purple)
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## 🌐 Live Demo
 
