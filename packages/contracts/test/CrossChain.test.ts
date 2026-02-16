@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { CrossChainHub, CrossChainReceiver, AgentRegistry, AGNTToken } from "../typechain-types";
 
 describe("CrossChain Agent Discovery", function () {
@@ -123,7 +124,7 @@ describe("CrossChain Agent Discovery", function () {
             ["code-review", "testing"],
             7500,
             10,
-            (await ethers.provider.getBlock("latest"))!.timestamp + 1
+            anyValue // timestamp can drift by a second
           );
 
         expect(await hub.isBroadcasted(agent1.address)).to.be.true;

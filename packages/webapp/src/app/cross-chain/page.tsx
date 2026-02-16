@@ -94,7 +94,7 @@ export default function CrossChainPage() {
   const chains = (supportedChains as SupportedChain[] | undefined) || [];
 
   // Get unique capabilities from all agents
-  const allCapabilities = [...new Set(agents.flatMap(a => [...a.capabilities]))];
+  const allCapabilities = Array.from(new Set(agents.flatMap(a => Array.from(a.capabilities))));
 
   // Filter agents by capability
   const filteredAgents = selectedCapability === 'all'
@@ -361,7 +361,7 @@ function BroadcastModal({
         BigInt(reputationScore),
         BigInt(tasksCompleted),
       ],
-      value: broadcastFee || 0n,
+      value: broadcastFee || BigInt(0),
     });
   };
 
@@ -456,7 +456,7 @@ function BroadcastModal({
               </p>
             )}
 
-            {broadcastFee && broadcastFee > 0n && (
+            {broadcastFee && broadcastFee > BigInt(0) && (
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                 <p className="text-sm text-blue-300">
                   Broadcast fee: {formatEther(broadcastFee)} HSK
