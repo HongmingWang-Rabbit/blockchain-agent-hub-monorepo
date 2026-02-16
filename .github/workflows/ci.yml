@@ -13,9 +13,6 @@ jobs:
   contracts:
     name: Smart Contracts
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/contracts
     steps:
       - uses: actions/checkout@v4
 
@@ -27,35 +24,23 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: .
 
       - name: Compile contracts
-        run: npx hardhat compile
+        run: npm run compile -w @agent-hub/contracts
 
       - name: Run tests
-        run: npx hardhat test
+        run: npm run test -w @agent-hub/contracts
 
       - name: Check contract sizes
-        run: npx hardhat compile --force && npx hardhat size-contracts || true
+        run: npm run compile -w @agent-hub/contracts && cd packages/contracts && npx hardhat size-contracts || true
 
       - name: Run coverage
-        run: npx hardhat coverage
+        run: cd packages/contracts && npx hardhat coverage
         continue-on-error: true
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: packages/contracts/coverage/lcov.info
-          flags: contracts
-          fail_ci_if_error: false
 
   sdk:
     name: SDK
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/sdk
     steps:
       - uses: actions/checkout@v4
 
@@ -67,23 +52,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: .
 
       - name: Build SDK
-        run: npm run build
+        run: npm run build -w @agent-hub/sdk
 
       - name: Run tests
-        run: npm test -- --run
+        run: npm run test -w @agent-hub/sdk -- --run
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run typecheck -w @agent-hub/sdk
 
   cli:
     name: CLI
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/cli
     steps:
       - uses: actions/checkout@v4
 
@@ -95,20 +76,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: .
 
       - name: Build CLI
-        run: npm run build
+        run: npm run build -w @agent-hub/cli
 
       - name: Test CLI help
-        run: node dist/index.js --help
+        run: node packages/cli/dist/index.js --help
 
   webapp:
     name: Webapp
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/webapp
     steps:
       - uses: actions/checkout@v4
 
@@ -120,16 +97,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: .
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run typecheck -w @agent-hub/webapp || true
 
       - name: Lint
-        run: npm run lint || true
+        run: npm run lint -w @agent-hub/webapp || true
 
       - name: Build
-        run: npm run build
+        run: npm run build -w @agent-hub/webapp
         env:
           NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ secrets.WALLETCONNECT_PROJECT_ID || 'demo' }}
 
