@@ -90,9 +90,17 @@ npm install
 
 ### Run Tests
 ```bash
+# Contract tests (161 passing)
 cd packages/contracts
 npx hardhat test
-# 105 tests passing
+
+# SDK tests
+cd packages/sdk
+npm test
+
+# CLI tests (12 passing)
+cd packages/cli
+npm test
 ```
 
 ### Local Development
