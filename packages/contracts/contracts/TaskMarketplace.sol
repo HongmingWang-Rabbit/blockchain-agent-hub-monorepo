@@ -152,7 +152,11 @@ contract TaskMarketplace is Ownable, ReentrancyGuard {
         require(agentOwner == msg.sender, "Not agent owner");
         require(isActive, "Agent not active");
 
-        // TODO: Verify agent has required capabilities
+        // Verify agent has at least one of the required capabilities
+        require(
+            _agentHasRequiredCapability(agentId, task.requiredCapabilities),
+            "Agent lacks required capability"
+        );
 
         task.assignedAgent = agentId;
         task.status = TaskStatus.Assigned;
@@ -160,6 +164,21 @@ contract TaskMarketplace is Ownable, ReentrancyGuard {
         agentTasks[agentId].push(taskId);
 
         emit TaskAssigned(taskId, agentId);
+    }
+
+    /**
+     * @dev Check if agent has at least one of the required capabilities
+     */
+    function _agentHasRequiredCapability(
+        bytes32 agentId,
+        string[] storage requiredCapabilities
+    ) internal view returns (bool) {
+        for (uint i = 0; i < requiredCapabilities.length; i++) {
+            if (agentRegistry.hasCapability(agentId, requiredCapabilities[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

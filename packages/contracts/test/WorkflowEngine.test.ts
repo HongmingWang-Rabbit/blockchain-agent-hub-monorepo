@@ -228,19 +228,133 @@ describe("WorkflowEngine", function () {
     it("Should allow agent to accept and complete step", async function () {
       await workflowEngine.startWorkflow(workflowId);
 
-      const agentId = ethers.keccak256(ethers.toUtf8Bytes("agent1"));
+      // Register an agent with the required capability
+      const stakeAmount = ethers.parseEther("100");
+      await agntToken.mint(agent1.address, stakeAmount);
+      await agntToken.connect(agent1).approve(await agentRegistry.getAddress(), stakeAmount);
+      
+      const registerTx = await agentRegistry.connect(agent1).registerAgent(
+        "TestAgent",
+        "ipfs://metadata",
+        ["data-analysis"], // Must match the step capability
+        stakeAmount
+      );
+      const registerReceipt = await registerTx.wait();
+      const agentId = registerReceipt.logs.find((l: any) => l.fragment?.name === "AgentRegistered").args[0];
 
-      // Accept step
-      await workflowEngine.acceptStep(workflowId, stepId, agentId);
+      // Accept step (as agent owner)
+      await workflowEngine.connect(agent1).acceptStep(workflowId, stepId, agentId);
 
       let step = await workflowEngine.workflowSteps(workflowId, stepId);
       expect(step.status).to.equal(1); // Running
 
-      // Complete step
-      await workflowEngine.completeStep(workflowId, stepId, "ipfs://output");
+      // Complete step (as agent owner)
+      await workflowEngine.connect(agent1).completeStep(workflowId, stepId, "ipfs://output");
 
       step = await workflowEngine.workflowSteps(workflowId, stepId);
       expect(step.status).to.equal(2); // Completed
+
+      // Verify agent received payment
+      const agentBalance = await agntToken.balanceOf(agent1.address);
+      expect(agentBalance).to.equal(ethers.parseEther("100")); // Step reward
+    });
+
+    it("Should reject step acceptance by non-agent-owner", async function () {
+      await workflowEngine.startWorkflow(workflowId);
+
+      // Register an agent owned by agent1
+      const stakeAmount = ethers.parseEther("100");
+      await agntToken.mint(agent1.address, stakeAmount);
+      await agntToken.connect(agent1).approve(await agentRegistry.getAddress(), stakeAmount);
+      
+      const registerTx = await agentRegistry.connect(agent1).registerAgent(
+        "TestAgent",
+        "ipfs://metadata",
+        ["data-analysis"],
+        stakeAmount
+      );
+      const registerReceipt = await registerTx.wait();
+      const agentId = registerReceipt.logs.find((l: any) => l.fragment?.name === "AgentRegistered").args[0];
+
+      // Try to accept step as agent2 (not the owner)
+      await expect(
+        workflowEngine.connect(agent2).acceptStep(workflowId, stepId, agentId)
+      ).to.be.revertedWith("Not agent owner");
+    });
+
+    it("Should reject step acceptance for agent without capability", async function () {
+      await workflowEngine.startWorkflow(workflowId);
+
+      // Register an agent with a DIFFERENT capability
+      const stakeAmount = ethers.parseEther("100");
+      await agntToken.mint(agent1.address, stakeAmount);
+      await agntToken.connect(agent1).approve(await agentRegistry.getAddress(), stakeAmount);
+      
+      const registerTx = await agentRegistry.connect(agent1).registerAgent(
+        "TestAgent",
+        "ipfs://metadata",
+        ["code-review"], // Wrong capability - step requires "data-analysis"
+        stakeAmount
+      );
+      const registerReceipt = await registerTx.wait();
+      const agentId = registerReceipt.logs.find((l: any) => l.fragment?.name === "AgentRegistered").args[0];
+
+      // Try to accept step with wrong capability
+      await expect(
+        workflowEngine.connect(agent1).acceptStep(workflowId, stepId, agentId)
+      ).to.be.revertedWith("Agent lacks capability");
+    });
+
+    it("Should reject step acceptance for inactive agent", async function () {
+      await workflowEngine.startWorkflow(workflowId);
+
+      // Register and then deactivate an agent
+      const stakeAmount = ethers.parseEther("100");
+      await agntToken.mint(agent1.address, stakeAmount);
+      await agntToken.connect(agent1).approve(await agentRegistry.getAddress(), stakeAmount);
+      
+      const registerTx = await agentRegistry.connect(agent1).registerAgent(
+        "TestAgent",
+        "ipfs://metadata",
+        ["data-analysis"],
+        stakeAmount
+      );
+      const registerReceipt = await registerTx.wait();
+      const agentId = registerReceipt.logs.find((l: any) => l.fragment?.name === "AgentRegistered").args[0];
+
+      // Deactivate the agent
+      await agentRegistry.connect(agent1).deactivateAgent(agentId);
+
+      // Try to accept step with inactive agent
+      await expect(
+        workflowEngine.connect(agent1).acceptStep(workflowId, stepId, agentId)
+      ).to.be.revertedWith("Agent not active");
+    });
+
+    it("Should reject step completion by non-assigned agent owner", async function () {
+      await workflowEngine.startWorkflow(workflowId);
+
+      // Register agent1's agent
+      const stakeAmount = ethers.parseEther("100");
+      await agntToken.mint(agent1.address, stakeAmount);
+      await agntToken.connect(agent1).approve(await agentRegistry.getAddress(), stakeAmount);
+      
+      const registerTx = await agentRegistry.connect(agent1).registerAgent(
+        "TestAgent",
+        "ipfs://metadata",
+        ["data-analysis"],
+        stakeAmount
+      );
+      const registerReceipt = await registerTx.wait();
+      const agentId = registerReceipt.logs.find((l: any) => l.fragment?.name === "AgentRegistered").args[0];
+
+      // Accept step as agent1
+      await workflowEngine.connect(agent1).acceptStep(workflowId, stepId, agentId);
+
+      // Try to complete step as agent2 (not the assigned agent owner)
+      await expect(
+        workflowEngine.connect(agent2).completeStep(workflowId, stepId, "ipfs://output")
+      ).to.be.revertedWith("Not assigned agent owner");
     });
   });
 

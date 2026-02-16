@@ -255,6 +255,35 @@ contract AgentRegistry is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Get agent owner address
+     */
+    function getAgentOwner(bytes32 agentId) external view returns (address) {
+        return agents[agentId].owner;
+    }
+
+    /**
+     * @dev Check if agent is active
+     */
+    function isAgentActive(bytes32 agentId) external view returns (bool) {
+        return agents[agentId].isActive && agents[agentId].owner != address(0);
+    }
+
+    /**
+     * @dev Check if agent has a specific capability
+     */
+    function hasCapability(bytes32 agentId, string calldata capability) external view returns (bool) {
+        string[] memory caps = agents[agentId].capabilities;
+        bytes32 capHash = keccak256(bytes(capability));
+        
+        for (uint i = 0; i < caps.length; i++) {
+            if (keccak256(bytes(caps[i])) == capHash) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @dev Add slasher (TaskMarketplace)
      */
     function addSlasher(address slasher) external onlyOwner {

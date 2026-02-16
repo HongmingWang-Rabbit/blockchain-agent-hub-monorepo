@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./interfaces/IAgentRegistry.sol";
 
 /**
  * @title WorkflowEngine
@@ -21,7 +22,7 @@ contract WorkflowEngine is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     IERC20 public agntToken;
-    address public agentRegistry;
+    IAgentRegistry public agentRegistry;
     address public taskMarketplace;
 
     // Workflow states
@@ -101,7 +102,7 @@ contract WorkflowEngine is Ownable, ReentrancyGuard {
         address _owner
     ) Ownable(_owner) {
         agntToken = IERC20(_agntToken);
-        agentRegistry = _agentRegistry;
+        agentRegistry = IAgentRegistry(_agentRegistry);
         taskMarketplace = _taskMarketplace;
     }
 
@@ -212,7 +213,14 @@ contract WorkflowEngine is Ownable, ReentrancyGuard {
         require(step.status == StepStatus.Pending, "Step not pending");
         require(_areDependenciesMet(workflowId, stepId), "Dependencies not met");
 
-        // TODO: Verify agentId has required capability from AgentRegistry
+        // Verify caller owns the agent
+        require(agentRegistry.getAgentOwner(agentId) == msg.sender, "Not agent owner");
+        
+        // Verify agent is active
+        require(agentRegistry.isAgentActive(agentId), "Agent not active");
+        
+        // Verify agent has required capability
+        require(agentRegistry.hasCapability(agentId, step.capability), "Agent lacks capability");
 
         step.status = StepStatus.Running;
         step.assignedAgent = agentId;
@@ -234,16 +242,17 @@ contract WorkflowEngine is Ownable, ReentrancyGuard {
 
         WorkflowStep storage step = workflowSteps[workflowId][stepId];
         require(step.status == StepStatus.Running, "Step not running");
-        // TODO: Verify msg.sender is the agent owner
+        
+        // Verify caller owns the assigned agent
+        address agentOwner = agentRegistry.getAgentOwner(step.assignedAgent);
+        require(agentOwner == msg.sender, "Not assigned agent owner");
 
         step.status = StepStatus.Completed;
         step.outputURI = outputURI;
         step.completedAt = block.timestamp;
 
-        // Pay the agent
-        // TODO: Get agent owner from registry and transfer
-        // For now, transfer to msg.sender
-        agntToken.safeTransfer(msg.sender, step.reward);
+        // Pay the agent owner
+        agntToken.safeTransfer(agentOwner, step.reward);
 
         emit StepCompleted(workflowId, stepId, outputURI);
 

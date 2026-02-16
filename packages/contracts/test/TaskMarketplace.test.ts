@@ -178,6 +178,32 @@ describe('TaskMarketplace', function () {
         marketplace.connect(agentOwner).acceptTask(taskId, agentId)
       ).to.be.revertedWith('Task not open');
     });
+
+    it('Should reject acceptance by agent without required capability', async function () {
+      const { marketplace, requester, agentOwner, agentId, latestTime } = await loadFixture(deployMarketplaceFixture);
+      const deadline = latestTime + 86400;
+
+      // Create task requiring a capability the agent doesn't have
+      const tx = await marketplace.connect(requester).createTask(
+        'Data Analysis Task',
+        'ipfs://task-desc',
+        ['data-analysis'], // Agent has text-generation and code-review, NOT data-analysis
+        ethers.parseEther('10'),
+        deadline,
+        false
+      );
+
+      const receipt = await tx.wait();
+      const event: any = receipt?.logs.find(
+        (log: any) => log.fragment?.name === 'TaskCreated'
+      );
+      const taskId = event?.args?.taskId;
+
+      // Try to accept with wrong capability
+      await expect(
+        marketplace.connect(agentOwner).acceptTask(taskId, agentId)
+      ).to.be.revertedWith('Agent lacks required capability');
+    });
   });
 
   describe('Result Submission', function () {
