@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { formatEther } from 'viem';
 
 interface Agent {
@@ -65,7 +66,7 @@ export function AgentCard({ agent }: { agent: Agent }) {
   const daysSinceRegistration = Math.floor((Date.now() - registeredDate.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="card hover:border-purple-500/50 transition-all hover:transform hover:scale-[1.02]">
+    <Link href={`/agents/${agent.id}`} className="block card hover:border-purple-500/50 transition-all hover:transform hover:scale-[1.02]">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xl shadow-lg">
@@ -145,6 +146,6 @@ export function AgentCard({ agent }: { agent: Agent }) {
         </span>
         <span className="font-mono">{agent.id.slice(0, 10)}...</span>
       </div>
-    </div>
+    </Link>
   );
 }
