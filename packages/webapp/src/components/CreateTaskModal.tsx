@@ -8,16 +8,18 @@ import { useCreateTask } from '@/hooks/useTasks';
 import { useAgntBalance, useAgntAllowance, useApproveAgnt } from '@/hooks/useAgents';
 import { CONTRACTS } from '@/contracts';
 import { STANDARD_CAPABILITIES } from '@/contracts/abis';
+import { TaskTemplate, TaskTemplates, TaskTemplatesPicker } from './TaskTemplates';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialTemplate?: TaskTemplate | null;
 }
 
 type Step = 'form' | 'approve' | 'create' | 'success';
 
-export function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
+export function CreateTaskModal({ isOpen, onClose, onSuccess, initialTemplate }: Props) {
   const { address } = useAccount();
   const [title, setTitle] = useState('');
   const [descriptionURI, setDescriptionURI] = useState('');
@@ -27,6 +29,30 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
   const [requiresHuman, setRequiresHuman] = useState(false);
   const [step, setStep] = useState<Step>('form');
   const [error, setError] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<TaskTemplate | null>(initialTemplate || null);
+
+  // Apply template when selected
+  const applyTemplate = (template: TaskTemplate) => {
+    setSelectedTemplate(template);
+    setTitle(`[${template.name}] `);
+    setSelectedCapability(template.capability);
+    setReward(template.suggestedReward.toString());
+    // Set deadline based on template
+    const deadlineDate = new Date(Date.now() + template.suggestedDeadlineDays * 24 * 60 * 60 * 1000);
+    setDeadline(deadlineDate.toISOString().slice(0, 16));
+    // Copy description template to clipboard and show hint
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(template.descriptionTemplate);
+    }
+  };
+
+  // Apply initial template on open
+  useEffect(() => {
+    if (initialTemplate && isOpen) {
+      applyTemplate(initialTemplate);
+    }
+  }, [initialTemplate, isOpen]);
 
   const { priceRange } = usePriceRange(selectedCapability || 'default');
   const { pricingInfo } = usePricingInfo();
@@ -123,6 +149,8 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
     setRequiresHuman(false);
     setStep('form');
     setError(null);
+    setSelectedTemplate(null);
+    setShowTemplates(false);
     onClose();
   };
 
@@ -216,6 +244,49 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Template Quick Pick */}
+              {!selectedTemplate && (
+                <div className="bg-white/5 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-white/60">Quick start with a template:</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowTemplates(true)}
+                      className="text-sm text-blue-400 hover:text-blue-300"
+                    >
+                      Browse all →
+                    </button>
+                  </div>
+                  <TaskTemplatesPicker onSelect={applyTemplate} />
+                </div>
+              )}
+
+              {/* Selected Template Banner */}
+              {selectedTemplate && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{selectedTemplate.icon}</span>
+                    <div>
+                      <div className="font-medium text-sm">Using: {selectedTemplate.name}</div>
+                      <div className="text-xs text-white/50">Description template copied to clipboard</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTemplate(null);
+                      setTitle('');
+                      setSelectedCapability('');
+                      setReward('');
+                      setDeadline('');
+                    }}
+                    className="text-white/60 hover:text-white text-sm"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium mb-1">Task Title</label>
                 <input
@@ -342,6 +413,13 @@ export function CreateTaskModal({ isOpen, onClose, onSuccess }: Props) {
           </>
         )}
       </div>
+
+      {/* Templates Modal */}
+      <TaskTemplates
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelect={applyTemplate}
+      />
     </div>
   );
 }
