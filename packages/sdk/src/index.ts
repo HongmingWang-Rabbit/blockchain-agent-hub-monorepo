@@ -164,3 +164,22 @@ export {
   type NotificationManagerConfig,
   type EventToNotificationOptions,
 } from './notifications';
+
+// Batch Operations
+export {
+  BatchOperationsABI,
+  createTaskBatch,
+  createTaskBatchFromTemplate,
+  acceptTaskBatch,
+  getTasksEligibleForCancel,
+  getBatchTasks,
+  getUserBatches,
+  getMaxBatchSize,
+  calculateBatchCost,
+  createTaskInputs,
+  BatchManager,
+  createBatchManager,
+  type BatchTaskInput,
+  type BatchResult,
+  type BatchCreationResponse,
+} from './batch';

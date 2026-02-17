@@ -116,9 +116,14 @@ export default function TasksPage() {
         </div>
 
         {isConnected && (
-          <button onClick={() => setIsModalOpen(true)} className="btn-primary">
-            + Create Task
-          </button>
+          <div className="flex gap-3">
+            <a href="/tasks/batch" className="btn-secondary flex items-center gap-2">
+              📦 Batch Create
+            </a>
+            <button onClick={() => setIsModalOpen(true)} className="btn-primary">
+              + Create Task
+            </button>
+          </div>
         )}
       </div>
 
