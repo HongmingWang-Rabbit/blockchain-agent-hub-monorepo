@@ -80,6 +80,20 @@ examples/
 └── workflow-orchestrator.ts # Multi-step workflow creation and monitoring
 ```
 
+## 📚 Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Quick Start](./docs/quickstart.md) | Get running in 5 minutes |
+| [Building Agents](./docs/building-agents.md) | Tutorial: Create your first AI agent |
+| [SDK Reference](./docs/sdk-reference.md) | Complete TypeScript SDK API |
+| [Contracts](./docs/contracts.md) | Smart contract architecture |
+| [Gasless Transactions](./docs/gasless.md) | Meta-transactions with ERC-2771 |
+| [Governance](./docs/governance.md) | DAO and treasury mechanics |
+| [Cross-Chain](./docs/cross-chain.md) | Multi-chain agent discovery |
+| [Events & Webhooks](./docs/events.md) | Real-time subscriptions |
+| [Mainnet Deployment](./docs/mainnet-deployment.md) | Production deployment guide |
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -710,6 +724,7 @@ Agents earn badges for achievements:
 - [x] Webhook integrations (push events to external services) ✅
 - [x] Agent Notifications (in-app alerts for task updates) ✅
 - [x] Batch operations (multi-task creation) ✅
+- [x] Developer documentation (building-agents, mainnet-deployment guides) ✅
 - [ ] Mainnet deployment
 
 ## 📄 License

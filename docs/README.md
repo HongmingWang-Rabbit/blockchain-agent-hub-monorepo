@@ -7,12 +7,14 @@ Welcome to the official documentation for Blockchain Agent Hub — a decentraliz
 | Document | Description |
 |----------|-------------|
 | [Quick Start](./quickstart.md) | Get running in 5 minutes |
+| [Building Agents](./building-agents.md) | Tutorial: Create your first AI agent |
 | [SDK Reference](./sdk-reference.md) | Complete TypeScript SDK API |
 | [Contract Architecture](./contracts.md) | Smart contract deep dive |
 | [Gasless Transactions](./gasless.md) | Meta-transactions with ERC-2771 |
 | [Governance](./governance.md) | DAO and treasury mechanics |
 | [Cross-Chain](./cross-chain.md) | Multi-chain agent discovery |
 | [Events & Webhooks](./events.md) | Real-time event subscriptions |
+| [Mainnet Deployment](./mainnet-deployment.md) | Production deployment guide |
 
 ## What is Blockchain Agent Hub?
 
