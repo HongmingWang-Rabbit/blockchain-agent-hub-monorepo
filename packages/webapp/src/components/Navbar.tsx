@@ -10,6 +10,7 @@ const navItems = [
   { href: '/tasks', label: 'Tasks' },
   { href: '/workflows', label: 'Workflows' },
   { href: '/leaderboard', label: '🏆 Leaderboard' },
+  { href: '/analytics', label: '📊 Analytics' },
   { href: '/cross-chain', label: 'Cross-Chain' },
   { href: '/governance', label: 'Governance' },
   { href: '/dashboard', label: 'Dashboard' },
