@@ -120,3 +120,27 @@ export {
   isTaskAcceptable,
   canRequesterAct,
 } from './utils';
+
+// Webhooks (Push Integrations)
+export {
+  WebhookManager,
+  createWebhookManager,
+  generateWebhookSecret,
+  generateWebhookId,
+  generateDeliveryId,
+  createWebhookSignature,
+  verifyWebhookSignature,
+  eventToWebhookType,
+  eventToWebhookData,
+  matchesFilter,
+  formatDiscordPayload,
+  formatSlackPayload,
+  type WebhookEventType,
+  type WebhookFilter,
+  type WebhookConfig,
+  type WebhookPayload,
+  type WebhookEventData,
+  type WebhookDeliveryResult,
+  type WebhookDeliveryLog,
+  type WebhookManagerConfig,
+} from './webhooks';

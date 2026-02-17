@@ -21,8 +21,8 @@ import { useProposals, IndexedProposal, useProposalTimeRemaining } from '../../h
 import DelegateModal from '../../components/DelegateModal';
 import CreateProposalModal from '../../components/CreateProposalModal';
 
-function ProposalStateLabel({ state }: { state: ProposalState }) {
-  const colors: Record<ProposalState, string> = {
+function ProposalStateLabel({ state }: { state: typeof ProposalState[keyof typeof ProposalState] }) {
+  const colors: Record<typeof ProposalState[keyof typeof ProposalState], string> = {
     [ProposalState.Pending]: 'bg-yellow-500/20 text-yellow-400',
     [ProposalState.Active]: 'bg-blue-500/20 text-blue-400',
     [ProposalState.Canceled]: 'bg-gray-500/20 text-gray-400',
