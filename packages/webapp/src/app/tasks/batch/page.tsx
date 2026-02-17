@@ -288,7 +288,7 @@ export default function BatchTasksPage() {
                 <div className="mt-4">
                   <label className="block text-sm text-gray-400 mb-2">Required Capabilities *</label>
                   <div className="flex flex-wrap gap-2">
-                    {STANDARD_CAPABILITIES.map((cap) => (
+                    {Object.values(STANDARD_CAPABILITIES).map((cap) => (
                       <button
                         key={cap}
                         onClick={() => handleCapabilityToggle(task.id, cap)}

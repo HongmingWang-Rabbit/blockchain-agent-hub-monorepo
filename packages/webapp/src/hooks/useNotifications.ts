@@ -15,6 +15,7 @@ import {
   type AgentHubEvent,
 } from '@agent-hub/sdk';
 import type { PublicClient } from 'viem';
+import { useUserData } from './useUserData';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -66,6 +67,7 @@ function getNotificationManager(): NotificationManager {
 export function useNotifications(): UseNotificationsReturn {
   const { address } = useAccount();
   const publicClient = usePublicClient();
+  const { agents, tasksAsRequester, tasksAsAgent } = useUserData();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [stats, setStats] = useState<NotificationStats>({
@@ -81,6 +83,17 @@ export function useNotifications(): UseNotificationsReturn {
   
   const managerRef = useRef<NotificationManager | null>(null);
   const watcherUnsubscribeRef = useRef<(() => void) | null>(null);
+  
+  // Compute user's agent IDs for filtering notifications
+  const userAgentIds = useMemo(() => {
+    return agents.map((a) => a.id.toLowerCase());
+  }, [agents]);
+  
+  // Compute user's task IDs for filtering notifications  
+  const userTaskIds = useMemo(() => {
+    const allUserTasks = [...tasksAsRequester, ...tasksAsAgent];
+    return new Set(allUserTasks.map((t) => t.id.toLowerCase()));
+  }, [tasksAsRequester, tasksAsAgent]);
   
   // Initialize manager
   useEffect(() => {
@@ -115,8 +128,8 @@ export function useNotifications(): UseNotificationsReturn {
       const handleEvent = (event: AgentHubEvent) => {
         const notification = eventToNotification(event, {
           userAddress: address,
-          agentIds: [], // TODO: Get user's agent IDs
-          watchedTaskIds: new Set(), // TODO: Get user's task IDs
+          agentIds: userAgentIds,
+          watchedTaskIds: userTaskIds,
           includeAll: false,
         });
         
@@ -148,7 +161,7 @@ export function useNotifications(): UseNotificationsReturn {
         watcherUnsubscribeRef.current = null;
       }
     };
-  }, [publicClient, address]);
+  }, [publicClient, address, userAgentIds, userTaskIds]);
   
   // Actions
   const markAsRead = useCallback((id: string) => {

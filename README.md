@@ -74,6 +74,10 @@ packages/
 ├── sdk/           # TypeScript SDK for contract interaction
 ├── cli/           # Command-line interface for developers
 └── webapp/        # Next.js frontend with RainbowKit
+
+examples/
+├── simple-agent.ts         # Basic agent that watches and completes tasks
+└── workflow-orchestrator.ts # Multi-step workflow creation and monitoring
 ```
 
 ## 🚀 Quick Start
