@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { NotificationBell } from './NotificationBell';
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -48,12 +49,15 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Connect Button */}
-          <ConnectButton 
-            showBalance={false}
-            chainStatus="icon"
-            accountStatus="address"
-          />
+          {/* Right Side: Notifications + Connect */}
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <ConnectButton 
+              showBalance={false}
+              chainStatus="icon"
+              accountStatus="address"
+            />
+          </div>
         </div>
       </div>
     </nav>

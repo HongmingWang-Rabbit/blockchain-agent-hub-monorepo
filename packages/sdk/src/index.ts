@@ -144,3 +144,23 @@ export {
   type WebhookDeliveryLog,
   type WebhookManagerConfig,
 } from './webhooks';
+
+// Notifications (In-App Alerts)
+export {
+  NotificationManager,
+  createNotificationManager,
+  eventToNotification,
+  requestBrowserNotificationPermission,
+  showBrowserNotification,
+  NOTIFICATION_TYPE_LABELS,
+  NOTIFICATION_TYPE_ICONS,
+  PRIORITY_COLORS,
+  type NotificationType,
+  type NotificationPriority,
+  type Notification,
+  type NotificationFilter,
+  type NotificationPreferences,
+  type NotificationStats,
+  type NotificationManagerConfig,
+  type EventToNotificationOptions,
+} from './notifications';
