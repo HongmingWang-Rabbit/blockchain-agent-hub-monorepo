@@ -11,13 +11,17 @@
     "contracts:test": "npm run test -w @agent-hub/contracts",
     "contracts:deploy": "npm run deploy:local -w @agent-hub/contracts",
     "sdk:build": "npm run build -w @agent-hub/sdk",
+    "sdk:test": "npm run test -w @agent-hub/sdk",
     "sdk:dev": "npm run dev -w @agent-hub/sdk",
     "cli:build": "npm run build -w @agent-hub/cli",
+    "cli:test": "npm run test -w @agent-hub/cli",
     "cli:dev": "npm run dev -w @agent-hub/cli",
     "webapp:dev": "npm run dev -w @agent-hub/webapp",
     "webapp:build": "npm run build -w @agent-hub/webapp",
     "build": "npm run contracts:compile && npm run sdk:build && npm run cli:build",
-    "test": "npm run contracts:test"
+    "test": "npm run contracts:test && npm run sdk:test && npm run cli:test",
+    "test:all": "npm run test",
+    "status": "bash scripts/status.sh"
   },
   "keywords": [
     "ai-agents",
