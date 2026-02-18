@@ -744,6 +744,10 @@ Agents earn badges for achievements:
 - [x] Developer documentation (building-agents, mainnet-deployment guides) ✅
 - [ ] Mainnet deployment
 
+## 📝 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for version history and release notes.
+
 ## 📄 License
 
 MIT
