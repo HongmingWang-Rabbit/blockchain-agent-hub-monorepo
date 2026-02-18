@@ -1,0 +1,97 @@
+{
+  "timestamp": 1771405477305,
+  "network": "hashkey",
+  "chainId": "133",
+  "checks": [
+    {
+      "name": "AGNT Token Code",
+      "status": "healthy",
+      "value": "0x7379C9d687F8c22d41be43fE510F8225afF253f6",
+      "message": "Contract exists (4966 bytes)"
+    },
+    {
+      "name": "Agent Registry Code",
+      "status": "healthy",
+      "value": "0xb044E947E8eCf2d954E9C1e26970bEe128e9EB49",
+      "message": "Contract exists (7262 bytes)"
+    },
+    {
+      "name": "Task Marketplace Code",
+      "status": "healthy",
+      "value": "0x7907ec09f1d1854Fd4dA26E1a9e357Fd0d797061",
+      "message": "Contract exists (9408 bytes)"
+    },
+    {
+      "name": "Agent NFT Code",
+      "status": "healthy",
+      "value": "0x4476e726B4030923bD29C98F8881Da2727B6a0B6",
+      "message": "Contract exists (14440 bytes)"
+    },
+    {
+      "name": "Workflow Engine Code",
+      "status": "healthy",
+      "value": "0x1c3e038fE4491d5e76673FFC9a02f90F85e3AEEd",
+      "message": "Contract exists (8756 bytes)"
+    },
+    {
+      "name": "Dynamic Pricing Code",
+      "status": "healthy",
+      "value": "0x418e9aD294fDCfF5dC927a942CFf431ee8e55ad3",
+      "message": "Contract exists (2576 bytes)"
+    },
+    {
+      "name": "Cross-Chain Hub Code",
+      "status": "healthy",
+      "value": "0x6349F97FEeb19D9646a34f81904b50bB704FAD08",
+      "message": "Contract exists (7936 bytes)"
+    },
+    {
+      "name": "Batch Operations Code",
+      "status": "healthy",
+      "value": "0x17a6c455AF4b8f79c26aBAF4b7F3F5a39ab0B1B5",
+      "message": "Contract exists (6057 bytes)"
+    },
+    {
+      "name": "AGNT Total Supply",
+      "status": "healthy",
+      "value": "400000000.0",
+      "message": "400000000.0 AGNT in circulation"
+    },
+    {
+      "name": "Registry AGNT Balance",
+      "status": "healthy",
+      "value": "0.0",
+      "message": "0.0 AGNT staked in registry"
+    },
+    {
+      "name": "Marketplace AGNT Balance",
+      "status": "healthy",
+      "value": "0.0",
+      "message": "0.0 AGNT in escrow"
+    },
+    {
+      "name": "Registry Query",
+      "status": "warning",
+      "value": "Failed",
+      "message": "Could not query registry: TypeError: registry.agentCount is not a function"
+    },
+    {
+      "name": "Marketplace Query",
+      "status": "warning",
+      "value": "Failed",
+      "message": "Could not query marketplace: TypeError: marketplace.taskCount is not a function"
+    },
+    {
+      "name": "Block Time Lag",
+      "status": "healthy",
+      "value": "1s",
+      "threshold": "60s",
+      "message": "Network is synced"
+    }
+  ],
+  "summary": {
+    "healthy": 12,
+    "warning": 2,
+    "critical": 0
+  }
+}

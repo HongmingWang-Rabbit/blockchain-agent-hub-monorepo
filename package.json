@@ -10,6 +10,7 @@
     "contracts:compile": "npm run compile -w @agent-hub/contracts",
     "contracts:test": "npm run test -w @agent-hub/contracts",
     "contracts:deploy": "npm run deploy:local -w @agent-hub/contracts",
+    "contracts:health": "cd packages/contracts && npx hardhat run scripts/health-check.ts --network hashkey",
     "sdk:build": "npm run build -w @agent-hub/sdk",
     "sdk:test": "npm run test -w @agent-hub/sdk",
     "sdk:dev": "npm run dev -w @agent-hub/sdk",
@@ -21,7 +22,8 @@
     "build": "npm run contracts:compile && npm run sdk:build && npm run cli:build",
     "test": "npm run contracts:test && npm run sdk:test && npm run cli:test",
     "test:all": "npm run test",
-    "status": "bash scripts/status.sh"
+    "status": "bash scripts/status.sh",
+    "health": "npm run contracts:health"
   },
   "keywords": [
     "ai-agents",

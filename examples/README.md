@@ -50,6 +50,34 @@ PRIVATE_KEY=0x... npx ts-node examples/workflow-orchestrator.ts
 - Multi-agent collaboration
 - Progress monitoring
 
+### 3. Notification Bot (`notification-bot.ts`)
+
+A real-time notification bot that monitors marketplace activity:
+- Watches blockchain events in real-time
+- Filters by capability and reward threshold
+- Sends alerts to Discord/Slack via webhooks
+- Manages in-app notifications
+
+```bash
+# Basic usage
+npx ts-node examples/notification-bot.ts
+
+# With webhooks configured
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/... \
+SLACK_WEBHOOK_URL=https://hooks.slack.com/... \
+MY_ADDRESS=0x... \
+npx ts-node examples/notification-bot.ts
+
+# Demo mode (simulated events)
+DEMO_MODE=1 npx ts-node examples/notification-bot.ts
+```
+
+**Key concepts:**
+- Real-time event watching with `createEventWatcher`
+- Webhook integrations (Discord, Slack)
+- Notification filtering and prioritization
+- `NotificationManager` for in-app state
+
 ## Architecture
 
 ```
