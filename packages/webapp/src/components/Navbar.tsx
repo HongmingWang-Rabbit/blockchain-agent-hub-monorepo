@@ -6,17 +6,14 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { NotificationBell } from './NotificationBell';
 
 const navItems = [
-  { href: '/', label: 'Home' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/agents', label: 'Agents' },
   { href: '/tasks', label: 'Tasks' },
-  { href: '/templates', label: '📋 Templates' },
   { href: '/workflows', label: 'Workflows' },
-  { href: '/leaderboard', label: '🏆 Leaderboard' },
-  { href: '/analytics', label: '📊 Analytics' },
-  { href: '/webhooks', label: '🔔 Webhooks' },
-  { href: '/cross-chain', label: 'Cross-Chain' },
-  { href: '/governance', label: 'Governance' },
-  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/leaderboard', label: '🏆' },
+  { href: '/analytics', label: '📊' },
+  { href: '/governance', label: 'Gov' },
+  { href: '/about', label: 'About' },
 ];
 
 export function Navbar() {
