@@ -109,13 +109,16 @@ npm install
 
 ### Run Tests
 ```bash
-# Contract tests (161 passing)
+# Contract tests (176 passing)
 cd packages/contracts
 npx hardhat test
 
-# SDK tests
+# SDK tests (168 unit tests)
 cd packages/sdk
 npm test
+
+# SDK integration tests (live testnet - slower)
+npm run test:integration
 
 # CLI tests (12 passing)
 cd packages/cli

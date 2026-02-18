@@ -80,6 +80,9 @@ jobs:
       - name: Build CLI
         run: npm run build -w @agent-hub/cli
 
+      - name: Run tests
+        run: npm run test -w @agent-hub/cli -- --run
+
       - name: Test CLI help
         run: node packages/cli/dist/index.js --help
 

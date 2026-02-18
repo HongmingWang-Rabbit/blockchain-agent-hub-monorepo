@@ -109,9 +109,9 @@ describe('Gasless SDK', () => {
         nonce: 0n,
       });
 
-      // Addresses should be checksummed
+      // Addresses should be checksummed (EIP-55)
       expect(request.from).toBe('0x1234567890123456789012345678901234567890');
-      expect(request.to).toBe('0xABcdEf1234567890AbcdEF1234567890aBCDEF12');
+      expect(request.to).toBe('0xabCDEF1234567890ABcDEF1234567890aBCDeF12');
     });
   });
 

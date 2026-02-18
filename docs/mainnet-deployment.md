@@ -16,11 +16,11 @@ This guide covers the complete process for deploying the Blockchain Agent Hub to
 # Run full test suite
 cd packages/contracts
 npx hardhat test
-# Expected: 161+ tests passing
+# Expected: 176+ tests passing
 
 cd ../sdk
-npm test
-# Expected: All SDK tests passing
+npm test                    # Unit tests (168 passing)
+npm run test:integration    # Integration tests with live testnet
 
 cd ../cli
 npm test

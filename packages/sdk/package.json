@@ -24,7 +24,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
+    "test": "vitest run --exclude '**/client.test.ts'",
+    "test:integration": "vitest run --testTimeout=30000",
+    "test:watch": "vitest",
     "clean": "rm -rf dist"
   },
   "dependencies": {
