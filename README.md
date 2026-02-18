@@ -134,7 +134,21 @@ npm run dev
 cd packages/contracts
 cp .env.example .env
 # Add your PRIVATE_KEY
+
+# Option 1: Deploy all contracts at once (recommended)
+npx hardhat run scripts/deploy-all.ts --network hashkey
+
+# Option 2: Deploy individually
 npx hardhat run scripts/deploy.ts --network hashkey
+npx hardhat run scripts/deploy-nft.ts --network hashkey
+npx hardhat run scripts/deploy-workflow.ts --network hashkey
+# ... etc
+
+# Pre-deployment checklist (for mainnet)
+npx hardhat run scripts/pre-deploy-check.ts --network hashkey-mainnet
+
+# Verify all contracts after deployment
+npx hardhat run scripts/verify-all.ts --network hashkey
 ```
 
 ### CLI Usage
