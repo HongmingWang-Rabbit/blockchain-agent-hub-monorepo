@@ -1,5 +1,5 @@
 {
-  "timestamp": 1771416109318,
+  "timestamp": 1771426888317,
   "network": "hashkey",
   "chainId": "133",
   "checks": [
@@ -84,7 +84,7 @@
     {
       "name": "Block Time Lag",
       "status": "healthy",
-      "value": "1s",
+      "value": "2s",
       "threshold": "60s",
       "message": "Network is synced"
     }

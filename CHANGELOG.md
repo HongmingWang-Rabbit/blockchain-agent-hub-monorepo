@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Mainnet Deployment Script** — One-command deployment to HashKey mainnet
+  - `scripts/deploy-mainnet.sh` — Guided deployment with safety checks
+  - `scripts/update-sdk-addresses.ts` — Auto-updates SDK after deployment
+  - `packages/webapp/.env.example` — Environment template for webapp
+  
 ### Pending
 - Mainnet deployment to HashKey Chain (chainId: 177)
-- SDK update with mainnet addresses
-- Webapp production configuration
 
 ---
 

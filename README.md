@@ -148,10 +148,25 @@ npx hardhat run scripts/deploy-workflow.ts --network hashkey
 # ... etc
 
 # Pre-deployment checklist (for mainnet)
-npx hardhat run scripts/pre-deploy-check.ts --network hashkey-mainnet
+npx hardhat run scripts/pre-deploy-check.ts --network hashkeyMainnet
 
 # Verify all contracts after deployment
 npx hardhat run scripts/verify-all.ts --network hashkey
+
+# Health check (verify deployed contracts)
+npx hardhat run scripts/health-check.ts --network hashkey
+```
+
+### Mainnet Deployment
+```bash
+# One-command mainnet deployment (from repo root)
+./scripts/deploy-mainnet.sh
+
+# Or step-by-step:
+cd packages/contracts
+npx hardhat run scripts/pre-deploy-check.ts --network hashkeyMainnet
+npx hardhat run scripts/deploy-all.ts --network hashkeyMainnet
+npx hardhat run scripts/update-sdk-addresses.ts --network hashkeyMainnet
 ```
 
 ### CLI Usage
