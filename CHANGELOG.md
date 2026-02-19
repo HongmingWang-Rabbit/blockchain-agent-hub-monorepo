@@ -8,10 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Settings Page** — User account and preferences management (`/settings`)
+  - Connected wallet info and balances
+  - Network switcher (testnet/mainnet)
+  - Notification preference toggles
+  - Export settings and clear local data
+  - Quick links to user's agents, tasks, and notifications
+  
+- **Faucet Page** — Testnet token acquisition guide (`/faucet`)
+  - Links to official HashKey HSK faucet
+  - AGNT token import instructions
+  - CLI mint commands for developers
+  - Next steps guidance for new users
+
 - **Mainnet Deployment Script** — One-command deployment to HashKey mainnet
   - `scripts/deploy-mainnet.sh` — Guided deployment with safety checks
   - `scripts/update-sdk-addresses.ts` — Auto-updates SDK after deployment
   - `packages/webapp/.env.example` — Environment template for webapp
+
+### Changed
+- Navbar updated with settings icon (⚙️) replacing About link
   
 ### Pending
 - Mainnet deployment to HashKey Chain (chainId: 177)

@@ -13,7 +13,7 @@ const navItems = [
   { href: '/leaderboard', label: '🏆' },
   { href: '/analytics', label: '📊' },
   { href: '/governance', label: 'Gov' },
-  { href: '/about', label: 'About' },
+  { href: '/settings', label: '⚙️' },
 ];
 
 export function Navbar() {
